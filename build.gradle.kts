@@ -15,13 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.allopen) apply false
-    id("com.github.ben-manes.versions") version "0.53.0" apply false
+    id("com.github.ben-manes.versions") version "0.53.0"
 }
 
 allprojects {
@@ -34,4 +35,17 @@ tasks.register<Delete>("clean") {
     delete(layout.buildDirectory)
 }
 
-apply(from = "dependencyUpdates.gradle")
+fun isNonStable(version: String): Boolean {
+    val stableKeywords = listOf("RELEASE", "FINAL", "GA")
+    val upperVersion = version.uppercase()
+    val hasStableKeyword = stableKeywords.any { upperVersion.contains(it) }
+    val nonStableRegex = "^.*[\\.\\-\\_](?:alpha|beta|rc|cr|m|preview|b|ea)[\\.\\d\\-\\_]*$".toRegex(RegexOption.IGNORE_CASE)
+    return if (hasStableKeyword) false else nonStableRegex.matches(version)
+}
+
+tasks.withType<DependencyUpdatesTask>().configureEach {
+    revision = "release"
+    rejectVersionIf {
+        isNonStable(candidate.version)
+    }
+}
