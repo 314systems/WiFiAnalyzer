@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -140,21 +139,33 @@ allOpen {
 signingConfig()
 
 fun signingConfig() {
-    if (isReleaseTask()) {
-        val propertiesFile = file("androidkeystore.properties")
-        if (propertiesFile.exists()) {
-            val properties = readProperties(propertiesFile)
-            println(">>> Signing Config " + properties)
-            android.signingConfigs.create("releaseConfig") {
-                keyAlias = properties["key_alias"].toString()
-                keyPassword = properties["key_password"].toString()
-                storeFile = file(properties["store_filename"].toString())
-                storePassword = properties["store_password"].toString()
+    val propertiesFile = file("androidkeystore.properties")
+
+    if (propertiesFile.exists()) {
+        val properties = readProperties(propertiesFile)
+
+        android {
+            signingConfigs.apply {
+                create("releaseConfig") {
+                    keyAlias = properties.getProperty("key_alias")
+                    keyPassword = properties.getProperty("key_password")
+                    storePassword = properties.getProperty("store_password")
+                    properties.getProperty("store_filename")?.let {
+                        storeFile = file(it)
+                    }
+                }
             }
-            android.buildTypes.getByName("release").signingConfig = android.signingConfigs.getByName("releaseConfig")
-        } else {
-            System.err.println(">>> No Signing Config found! Missing '" + propertiesFile.name + "' file!")
+
+            buildTypes.getByName("release") {
+                signingConfig = android.signingConfigs.getByName("releaseConfig")
+            }
         }
+
+        if (isReleaseTask()) {
+            println(">>> Release signing configured using ${propertiesFile.name}")
+        }
+    } else if (isReleaseTask()) {
+        logger.error(">>> No Signing Config found! Missing '${propertiesFile.name}' file!")
     }
 }
 
@@ -163,70 +174,75 @@ updateVersion()
 
 fun updateVersion() {
     val propertiesFile = file("build.properties")
+    if (!propertiesFile.exists()) return
     val properties = readProperties(propertiesFile)
 
-    val versionMajor = properties["version_major"].toString().toInt()
-    val versionMinor = properties["version_minor"].toString().toInt()
-    var versionPatch = properties["version_patch"].toString().toInt()
-    var versionBuild = properties["version_build"].toString().toInt()
-    var versionStore = properties["version_store"].toString().toInt()
+    fun getIntProp(key: String) = properties.getProperty(key)?.toInt() ?: 0
 
-    if (isReleaseTask()) {
+    val versionMajor = getIntProp("version_major")
+    val versionMinor = getIntProp("version_minor")
+    var versionPatch = getIntProp("version_patch")
+    var versionBuild = getIntProp("version_build")
+    var versionStore = getIntProp("version_store")
+
+    val isRelease = isReleaseTask()
+    val isTest = isTestTask()
+
+    if (isRelease) {
         println(">>> Building Release...")
         versionPatch++
         versionStore++
         versionBuild = 0
+    } else if (isTest) {
+        println(">>> Running Tests...")
+        versionBuild++
+    }
+
+    if (isRelease || isTest) {
         properties["version_patch"] = versionPatch.toString()
         properties["version_store"] = versionStore.toString()
         properties["version_build"] = versionBuild.toString()
         writeProperties(propertiesFile, properties)
     }
-    if (isTestTask()) {
-        println(">>> Running Tests...")
-        versionBuild++
-        properties["version_build"] = versionBuild.toString()
-        writeProperties(propertiesFile, properties)
-    }
 
-    var versionName = "${versionMajor}.${versionMinor}.${versionPatch}"
-    var applicationId = android.defaultConfig.applicationId
-    if (!isReleaseTask()) {
-        versionName = versionName + ".${versionBuild}"
-        applicationId = applicationId + android.buildTypes.get("debug").applicationIdSuffix
+    val baseVersion = "$versionMajor.$versionMinor.$versionPatch"
+    val finalVersionName = if (isRelease) baseVersion else "$baseVersion.$versionBuild"
+
+    val appId = android.defaultConfig.applicationId
+    val suffix = android.buildTypes.getByName("debug").applicationIdSuffix ?: ""
+    val finalAppId = if (isRelease) appId else "$appId$suffix"
+    println(">>> ${project.name} $finalVersionName (${versionStore}) $finalAppId")
+
+    android.defaultConfig.apply {
+        versionCode = versionStore
+        versionName = finalVersionName
     }
-    println(">>> " + project.parent?.name + " " + versionName + " (" + versionStore + ") " + applicationId)
-    android.defaultConfig.versionCode = versionStore
-    android.defaultConfig.versionName = versionName
+    android.defaultConfig.versionName = finalVersionName
 }
 
 fun isTestTask(): Boolean {
     val tasks = gradle.startParameter.taskNames
-    return ":app:testDebugUnitTest" in tasks || "testDebugUnitTest" in tasks ||
-            ":app:testReleaseUnitTest" in tasks || "testReleaseUnitTest" in tasks
+    return tasks.any { it.contains("UnitTest", ignoreCase = true) }
 }
 
 fun isReleaseTask(): Boolean {
     val tasks = gradle.startParameter.taskNames
-    return ":app:assembleRelease" in tasks || "assembleRelease" in tasks ||
-            ":app:bundleRelease" in tasks || "bundleRelease" in tasks
+    return tasks.any { it.contains("Release", ignoreCase = true) }
 }
 
 fun readProperties(propertiesFile: File): Properties {
-    if (propertiesFile.canRead()) {
-        val properties = Properties()
-        val inputStream = FileInputStream(propertiesFile)
-        properties.load(inputStream)
-        inputStream.close()
-        return properties
-    } else {
-        val message = ">>> Could not read " + propertiesFile.name + " file!"
-        System.err.println(message)
+    if (!propertiesFile.canRead()) {
+        val message = ">>> Could not read ${propertiesFile.name} file!"
         throw RuntimeException(message)
+    }
+
+    return Properties().apply {
+        propertiesFile.inputStream().use(::load)
     }
 }
 
 fun writeProperties(propertiesFile: File, properties: Properties) {
-    val writer = propertiesFile.writer()
-    properties.store(writer, "Build Properties")
-    writer.close()
+    propertiesFile.writer().use { writer ->
+        properties.store(writer, "Build Properties")
+    }
 }
