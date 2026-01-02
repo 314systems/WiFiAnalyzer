@@ -17,41 +17,21 @@
  */
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
-buildscript {
-    ext {
-        kotlin_version = '2.2.21'
-    }
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal() // Added for plugin resolution
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "com.github.ben-manes:gradle-versions-plugin:0.53.0"
-    }
+plugins {
+    id("com.android.application") version "8.13.2" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.21" apply false
+    id("org.jetbrains.kotlin.plugin.allopen") version "2.2.21" apply false
+    id("com.github.ben-manes.versions") version "0.53.0" apply false
 }
 
 allprojects {
-    repositories {
-        google()
-        maven {
-            url = 'https://maven.google.com'
-        }
-        mavenCentral()
-    }
-    tasks.withType(JavaCompile).tap {
-        configureEach {
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-        }
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation"))
     }
 }
 
-tasks.register('clean', Delete) {
-    delete rootProject.layout.buildDirectory
+tasks.register<Delete>("clean") {
+    delete(layout.buildDirectory)
 }
 
-apply from: "dependencyUpdates.gradle"
+apply(from = "dependencyUpdates.gradle")
