@@ -19,11 +19,11 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-allopen")
-    id("jacoco")
-    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.allopen)
+    jacoco
+    alias(libs.plugins.ktlint)
 }
 
 apply (
@@ -34,35 +34,34 @@ apply (
 dependencies {
     // Compile Build Dependencies
     implementation(fileTree("libs") { include("*.jar") })
-    implementation("com.google.android.material:material:1.13.0")
-    implementation("androidx.annotation:annotation:1.9.1")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.collection:collection-ktx:1.5.0")
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.core:core-splashscreen:1.2.0")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
-    implementation("androidx.media:media:1.7.1")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.21")
-    implementation("com.jjoe64:graphview:4.2.2")
+    implementation(libs.material)
+    implementation(libs.androidx.annotation)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.collection.ktx)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.media)
+    implementation(libs.androidx.preference.ktx)
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.graphview)
     // Unit Test Dependencies
-    testImplementation("androidx.test.ext:junit:1.3.0")
-    testImplementation("com.googlecode.junit-toolbox:junit-toolbox:2.4")
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:5.21.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
-    testImplementation("org.robolectric:robolectric:4.16")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:2.2.21")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.2.21")
-    testImplementation("org.slf4j:slf4j-simple:2.0.17")
-    testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.junit.toolbox)
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.slf4j.simple)
+    testImplementation(libs.assertj.core)
     // Android Test Dependencies
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.7.0")
-    androidTestImplementation("androidx.test.ext:junit-ktx:1.3.0")
-    androidTestImplementation("androidx.test:rules:1.7.0")
-    androidTestImplementation("org.assertj:assertj-core:3.27.6")
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.contrib)
+    androidTestImplementation(libs.androidx.junit.ktx)
+    androidTestImplementation(libs.androidx.rules)
+    androidTestImplementation(libs.assertj.core)
 }
 
 android {
