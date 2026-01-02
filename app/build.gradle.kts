@@ -145,7 +145,7 @@ fun signingConfig() {
         val properties = readProperties(propertiesFile)
 
         android {
-            signingConfigs.apply {
+            signingConfigs {
                 create("releaseConfig") {
                     keyAlias = properties.getProperty("key_alias")
                     keyPassword = properties.getProperty("key_password")
@@ -209,28 +209,24 @@ fun updateVersion() {
 
     val baseVersion = "$versionMajor.$versionMinor.$versionPatch"
     val finalVersionName = if (isRelease) baseVersion else "$baseVersion.$versionBuild"
+    val finalAppId =
+        if (isRelease) {
+            android.defaultConfig.applicationId
+        } else {
+            "${android.defaultConfig.applicationId}${android.buildTypes.getByName("debug").applicationIdSuffix}"
+        }
 
-    val appId = android.defaultConfig.applicationId
-    val suffix = android.buildTypes.getByName("debug").applicationIdSuffix ?: ""
-    val finalAppId = if (isRelease) appId else "$appId$suffix"
     println(">>> ${project.name} $finalVersionName ($versionStore) $finalAppId")
 
     android.defaultConfig.apply {
         versionCode = versionStore
         versionName = finalVersionName
     }
-    android.defaultConfig.versionName = finalVersionName
 }
 
-fun isTestTask(): Boolean {
-    val tasks = gradle.startParameter.taskNames
-    return tasks.any { it.contains("UnitTest", ignoreCase = true) }
-}
+fun isTestTask() = gradle.startParameter.taskNames.any { it.contains("UnitTest", ignoreCase = true) }
 
-fun isReleaseTask(): Boolean {
-    val tasks = gradle.startParameter.taskNames
-    return tasks.any { it.contains("Release", ignoreCase = true) }
-}
+fun isReleaseTask() = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
 
 fun readProperties(propertiesFile: File): Properties {
     if (!propertiesFile.canRead()) {
