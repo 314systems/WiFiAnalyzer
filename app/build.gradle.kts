@@ -26,8 +26,8 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-apply (
-    from = "jacoco.gradle"
+apply(
+    from = "jacoco.gradle",
 )
 
 // dependencies -------------------------------------------------
@@ -211,7 +211,7 @@ fun updateVersion() {
     val appId = android.defaultConfig.applicationId
     val suffix = android.buildTypes.getByName("debug").applicationIdSuffix ?: ""
     val finalAppId = if (isRelease) appId else "$appId$suffix"
-    println(">>> ${project.name} $finalVersionName (${versionStore}) $finalAppId")
+    println(">>> ${project.name} $finalVersionName ($versionStore) $finalAppId")
 
     android.defaultConfig.apply {
         versionCode = versionStore
@@ -241,7 +241,10 @@ fun readProperties(propertiesFile: File): Properties {
     }
 }
 
-fun writeProperties(propertiesFile: File, properties: Properties) {
+fun writeProperties(
+    propertiesFile: File,
+    properties: Properties,
+) {
     propertiesFile.writer().use { writer ->
         properties.store(writer, "Build Properties")
     }
