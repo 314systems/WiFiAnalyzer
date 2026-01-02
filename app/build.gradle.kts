@@ -43,7 +43,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.media)
     implementation(libs.androidx.preference.ktx)
-    implementation(libs.kotlin.stdlib)
     implementation(libs.graphview)
     // Unit Test Dependencies
     testImplementation(libs.androidx.junit)
@@ -52,8 +51,6 @@ dependencies {
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.slf4j.simple)
     testImplementation(libs.assertj.core)
     // Android Test Dependencies
