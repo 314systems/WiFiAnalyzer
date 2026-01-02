@@ -25,7 +25,7 @@ rules = "1.7.0"
 slf4jSimple = "2.0.17"
 
 [libraries]
-androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-collection-ktx = { group = "androidx.collection", name = "collection-ktx", version.ref = "collectionKtx" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
