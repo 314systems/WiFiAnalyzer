@@ -156,8 +156,10 @@ fun signingConfig() {
                 }
             }
 
-            buildTypes.getByName("release") {
-                signingConfig = android.signingConfigs.getByName("releaseConfig")
+            buildTypes {
+                release {
+                    signingConfig = android.signingConfigs.getByName("releaseConfig")
+                }
             }
         }
 
