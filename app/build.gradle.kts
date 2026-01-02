@@ -26,10 +26,6 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-apply(
-    from = "jacoco.gradle",
-)
-
 // dependencies -------------------------------------------------
 dependencies {
     // Compile Build Dependencies
@@ -244,3 +240,105 @@ fun writeProperties(
         properties.store(writer, "Build Properties")
     }
 }
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+val fileFilter =
+    listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/databinding/*.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/com/jjoe64/*",
+        "**/com/vrem/wifianalyzer/settings/SharedPreferences*",
+        "**/*\$DefaultImpls.class",
+    )
+
+val classDirectoriesTree =
+    files(
+        fileTree(
+            layout.buildDirectory.dir(
+                "intermediates/javac/debug/compileDebugJavaWithJavac/classes",
+            ),
+        ) { exclude(fileFilter) },
+        fileTree(
+            layout.buildDirectory.dir(
+                "tmp/kotlin-classes/debug",
+            ),
+        ) { exclude(fileFilter) },
+    )
+
+val sourceDirectoriesTree =
+    files(
+        layout.projectDirectory.dir("src/main/java"),
+        layout.projectDirectory.dir("src/main/kotlin"),
+    )
+
+val executionDataTree =
+    fileTree(layout.buildDirectory) {
+        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    }
+
+tasks.withType<Test>().configureEach {
+    extensions.configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+
+tasks.withType<JacocoReportBase>().configureEach {
+    sourceDirectories.setFrom(sourceDirectoriesTree)
+    classDirectories.setFrom(classDirectoriesTree)
+    executionData.setFrom(executionDataTree)
+}
+
+val jacocoReportProvider =
+    tasks.register<JacocoReport>("jacocoTestReport") {
+        dependsOn("testDebugUnitTest")
+        reports {
+            csv.required.set(false)
+            xml.required.set(true)
+            html.required.set(true)
+        }
+    }
+
+val jacocoCoverageVerificationProvider =
+    tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+        dependsOn(jacocoReportProvider)
+
+        violationRules {
+            isFailOnViolation = true
+            rule {
+                element = "BUNDLE"
+                limit {
+                    counter = "INSTRUCTION"
+                    minimum = "0.98".toBigDecimal()
+                }
+                limit {
+                    counter = "BRANCH"
+                    minimum = "0.95".toBigDecimal()
+                }
+                limit {
+                    counter = "COMPLEXITY"
+                    minimum = "0.96".toBigDecimal()
+                }
+                limit {
+                    counter = "LINE"
+                    minimum = "0.99".toBigDecimal()
+                }
+                limit {
+                    counter = "METHOD"
+                    minimum = "0.98".toBigDecimal()
+                }
+                limit {
+                    counter = "CLASS"
+                    minimum = "0.99".toBigDecimal()
+                }
+            }
+        }
+    }
