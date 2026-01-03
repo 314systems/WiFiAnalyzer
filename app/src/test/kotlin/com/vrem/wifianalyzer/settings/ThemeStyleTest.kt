@@ -18,6 +18,7 @@
 package com.vrem.wifianalyzer.settings
 
 import android.graphics.Color
+import androidx.appcompat.app.AppCompatDelegate
 import com.vrem.wifianalyzer.R
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -60,5 +61,13 @@ class ThemeStyleTest {
         assertThat(ThemeStyle.LIGHT.ordinal).isEqualTo(1)
         assertThat(ThemeStyle.SYSTEM.ordinal).isEqualTo(2)
         assertThat(ThemeStyle.BLACK.ordinal).isEqualTo(3)
+    }
+
+    @Test
+    fun nightMode() {
+        assertThat(ThemeStyle.DARK.nightMode).isEqualTo(AppCompatDelegate.MODE_NIGHT_YES)
+        assertThat(ThemeStyle.LIGHT.nightMode).isEqualTo(AppCompatDelegate.MODE_NIGHT_NO)
+        assertThat(ThemeStyle.SYSTEM.nightMode).isEqualTo(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        assertThat(ThemeStyle.BLACK.nightMode).isEqualTo(AppCompatDelegate.MODE_NIGHT_YES)
     }
 }
