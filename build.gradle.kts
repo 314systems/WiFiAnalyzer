@@ -36,9 +36,8 @@ tasks.register<Delete>("clean") {
 
 fun isNonStable(version: String): Boolean {
     val stableKeywords = listOf("RELEASE", "FINAL", "GA")
-    val upperVersion = version.uppercase()
-    val hasStableKeyword = stableKeywords.any { upperVersion.contains(it) }
-    val nonStableRegex = "^.*(?i)[.-](alpha|beta|rc|cr|m|preview|b|ea)[.\\d-]*.*$".toRegex()
+    val hasStableKeyword = stableKeywords.any { version.contains(it, ignoreCase = true) }
+    val nonStableRegex = "^.*[.-](alpha|beta|rc|cr|m|preview|b|ea)[.\\d-]*.*$".toRegex(RegexOption.IGNORE_CASE)
 
     return !hasStableKeyword && nonStableRegex.matches(version)
 }
