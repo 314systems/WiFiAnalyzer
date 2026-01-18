@@ -52,5 +52,4 @@ slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4
 android-application = { id = "com.android.application", version.ref = "agp" }
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "gradleVersionsPlugin" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
