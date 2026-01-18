@@ -59,8 +59,12 @@ dependencies {
 
 android {
     namespace = "com.vrem.wifianalyzer"
-    compileSdk = 36
-    buildToolsVersion = "36.1.0"
+    compileSdk {
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
+    }
 
     defaultConfig {
         applicationId = "com.vrem.wifianalyzer"
