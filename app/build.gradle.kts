@@ -131,7 +131,7 @@ allOpen {
 signingConfig()
 
 fun signingConfig() {
-    val propertiesFile = file("androidkeystore.properties")
+    val propertiesFile = rootProject.file("androidkeystore.properties")
 
     if (propertiesFile.exists()) {
         val properties = readProperties(propertiesFile)
