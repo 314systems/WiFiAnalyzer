@@ -15,43 +15,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
-buildscript {
-    ext {
-        kotlin_version = '2.3.0'
-    }
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal() // Added for plugin resolution
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:9.0.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "com.github.ben-manes:gradle-versions-plugin:0.53.0"
-    }
+plugins {
+    id("com.android.application") version "9.0.1" apply false
+    kotlin("plugin.allopen") version "2.3.10" apply false
+    id("com.github.ben-manes.versions") version "0.53.0" apply false
 }
 
 allprojects {
-    repositories {
-        google()
-        maven {
-            url = 'https://maven.google.com'
-        }
-        mavenCentral()
-    }
-    tasks.withType(JavaCompile).tap {
-        configureEach {
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-        }
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation"))
     }
 }
 
-tasks.register('clean', Delete) {
-    delete rootProject.layout.buildDirectory
+tasks.register<Delete>("clean") {
+    delete(layout.buildDirectory)
 }
 
-apply from: "dependencyUpdates.gradle"
+// Determines if a version string is non-stable (alpha, beta, etc.)
+val stableKeywords = listOf("RELEASE", "FINAL", "GA")
+val nonStableRegex = Regex("(?i)[.-](alpha|beta|rc|cr|m|preview|b|ea)[.\\d-]*")
+
+fun isNonStable(version: String?): Boolean {
+    if (version.isNullOrBlank()) return true // Treat null/empty as non-stable
+    val upperVersion = version.uppercase()
+    if (stableKeywords.any { upperVersion.contains(it) }) {
+        return false
+    }
+    return nonStableRegex.matches(version)
+}
+
+tasks.withType<DependencyUpdatesTask>().configureEach {
+    revision = "release" // Only show stable versions in the report
+    rejectVersionIf {
+        isNonStable(candidate.version)
+    }
+}
