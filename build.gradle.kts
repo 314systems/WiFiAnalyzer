@@ -18,9 +18,9 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    id("com.android.application") version "9.0.1" apply false
-    kotlin("plugin.allopen") version "2.3.10" apply false
-    id("com.github.ben-manes.versions") version "0.53.0" apply false
+    alias(libs.plugins.kotlin.allopen) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.benmanes.versions) apply false
 }
 
 allprojects {
