@@ -40,13 +40,8 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <!-- Overlay and splash styles -->
+    <!-- Overlay styles -->
     <style name="ThemeOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-    <style name="ThemeSplash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_inset</item>
-        <item name="windowSplashScreenAnimationDuration">500</item>
-    </style>
 
     <!-- Window animation style -->
     <style name="WindowAnimationTransition">
