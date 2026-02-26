@@ -19,51 +19,36 @@ package com.vrem.wifianalyzer.permission
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.DialogInterface
+import android.os.Build
 import android.view.View
-import com.vrem.util.buildMinVersionP
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.databinding.InfoPermissionBinding
 
 class PermissionDialog(
     private val activity: Activity,
 ) {
-    fun show(): View? {
-        val view = activity.layoutInflater.inflate(R.layout.info_permission, null)
-        val visibility = if (buildMinVersionP()) View.VISIBLE else View.GONE
-        view.findViewById<View>(R.id.throttling)!!.visibility = visibility
+    fun show(): View {
+        val binding = InfoPermissionBinding.inflate(activity.layoutInflater)
+        binding.infoThrottling.throttling.visibility = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) View.VISIBLE else View.GONE
+
         AlertDialog
             .Builder(activity)
-            .setView(view)
+            .setView(binding.root)
             .setTitle(R.string.app_full_name)
             .setIcon(R.drawable.ic_app)
-            .setPositiveButton(android.R.string.ok, OkClick(activity))
-            .setNegativeButton(android.R.string.cancel, CancelClick(activity))
-            .create()
+            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                dialog.dismiss()
+                activity.requestPermissions(
+                    arrayOf(ApplicationPermission.PERMISSION),
+                    ApplicationPermission.REQUEST_CODE
+                )
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+                activity.finish()
+            }
             .show()
-        return view
-    }
 
-    internal class OkClick(
-        private val activity: Activity,
-    ) : DialogInterface.OnClickListener {
-        override fun onClick(
-            alertDialog: DialogInterface,
-            which: Int,
-        ) {
-            alertDialog.dismiss()
-            activity.requestPermissions(arrayOf(ApplicationPermission.PERMISSION), ApplicationPermission.REQUEST_CODE)
-        }
-    }
-
-    internal class CancelClick(
-        private val activity: Activity,
-    ) : DialogInterface.OnClickListener {
-        override fun onClick(
-            alertDialog: DialogInterface,
-            which: Int,
-        ) {
-            alertDialog.dismiss()
-            activity.finish()
-        }
+        return binding.root
     }
 }

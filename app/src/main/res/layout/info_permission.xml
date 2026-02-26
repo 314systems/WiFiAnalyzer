@@ -27,10 +27,16 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <include layout="@layout/info_throttling" />
+        <include
+            android:id="@+id/info_throttling"
+            layout="@layout/info_throttling" />
 
-        <include layout="@layout/info_location" />
+        <include
+            android:id="@+id/info_location"
+            layout="@layout/info_location" />
 
-        <include layout="@layout/info_faq" />
+        <include
+            android:id="@+id/info_faq"
+            layout="@layout/info_faq" />
     </LinearLayout>
 </ScrollView>

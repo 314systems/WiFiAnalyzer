@@ -17,36 +17,16 @@
  */
 package com.vrem.wifianalyzer.permission
 
-import android.app.Activity
+import android.content.Context
 import android.location.LocationManager
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.vrem.util.buildMinVersionP
+import androidx.core.content.getSystemService
+import androidx.core.location.LocationManagerCompat
 
 class LocationPermission(
-    private val activity: Activity,
+    private val context: Context,
 ) {
-    fun enabled(): Boolean =
-        if (buildMinVersionP()) {
-            runCatching {
-                val locationManager = activity.getSystemService(LocationManager::class.java)
-                locationEnabled(locationManager) ||
-                    networkProviderEnabled(locationManager) ||
-                    gpsProviderEnabled(locationManager)
-            }.getOrDefault(false)
-        } else {
-            true
-        }
-
-    private fun gpsProviderEnabled(locationManager: LocationManager): Boolean =
-        runCatching { locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) }
-            .getOrDefault(false)
-
-    private fun networkProviderEnabled(locationManager: LocationManager): Boolean =
-        runCatching { locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) }
-            .getOrDefault(false)
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    private fun locationEnabled(locationManager: LocationManager): Boolean =
-        runCatching { locationManager.isLocationEnabled }.getOrDefault(false)
+    fun enabled(): Boolean {
+        val locationManager = context.getSystemService<LocationManager>() ?: return false
+        return LocationManagerCompat.isLocationEnabled(locationManager)
+    }
 }
