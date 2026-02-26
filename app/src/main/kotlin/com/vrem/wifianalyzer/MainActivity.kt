@@ -24,13 +24,12 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import com.vrem.util.createContext
+import com.vrem.wifianalyzer.databinding.MainActivityBinding
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.navigation.NavigationMenuControl
 import com.vrem.wifianalyzer.navigation.NavigationMenuController
@@ -49,6 +48,7 @@ class MainActivity :
     internal lateinit var navigationMenuController: NavigationMenuController
     internal lateinit var optionMenu: OptionMenu
     internal lateinit var connectionView: ConnectionView
+    private lateinit var binding: MainActivityBinding
 
     override fun attachBaseContext(newBase: Context) =
         super.attachBaseContext(newBase.createContext(Settings(Repository(newBase)).languageLocale()))
@@ -65,7 +65,9 @@ class MainActivity :
 
         super.onCreate(savedInstanceState)
         installSplashScreen()
-        setContentView(R.layout.main_activity)
+
+        binding = MainActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         settings.registerOnSharedPreferenceChangeListener(this)
         optionMenu = OptionMenu()
@@ -141,7 +143,7 @@ class MainActivity :
     }
 
     fun closeDrawer(): Boolean {
-        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val drawer = binding.drawerLayout
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START)
             return true
@@ -217,6 +219,6 @@ class MainActivity :
     override fun navigationView(): NavigationView = navigationMenuController.drawerNavigationView
 
     fun mainConnectionVisibility(visibility: Int) {
-        findViewById<View>(R.id.main_connection).visibility = visibility
+        binding.mainContent.mainConnection.mainConnection.visibility = visibility
     }
 }

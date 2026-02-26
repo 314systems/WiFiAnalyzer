@@ -23,9 +23,13 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <include layout="@layout/main_toolbar" />
+    <include
+        android:id="@+id/main_toolbar"
+        layout="@layout/main_toolbar" />
 
-    <include layout="@layout/main_connection" />
+    <include
+        android:id="@+id/main_connection"
+        layout="@layout/main_connection" />
 
     <LinearLayout
         android:layout_width="match_parent"
