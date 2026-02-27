@@ -17,15 +17,26 @@
  */
 package com.vrem.wifianalyzer.permission
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import androidx.core.location.LocationManagerCompat
 
-class PermissionService(
-    private val context: Context,
-    private val locationPermission: LocationPermission = LocationPermission(context),
-) {
+class PermissionService(private val context: Context) {
+    companion object {
+        const val PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
+    }
+
     fun enabled(): Boolean = locationEnabled() && permissionGranted()
 
-    fun locationEnabled(): Boolean = locationPermission.enabled()
+    fun locationEnabled(): Boolean {
+        val locationManager = context.getSystemService<LocationManager>() ?: return false
+        return LocationManagerCompat.isLocationEnabled(locationManager)
+    }
 
-    fun permissionGranted(): Boolean = ApplicationPermission.granted(context)
+    fun permissionGranted(): Boolean =
+        ContextCompat.checkSelfPermission(context, PERMISSION) == PackageManager.PERMISSION_GRANTED
 }
