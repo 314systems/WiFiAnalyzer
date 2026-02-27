@@ -21,15 +21,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
 import android.widget.ExpandableListView
-import android.widget.ImageView
-import com.vrem.wifianalyzer.R
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ComposeView
+import com.vrem.wifianalyzer.MainContext
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
+import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier
 
 class AccessPointsAdapter(
     private val accessPointsAdapterData: AccessPointsAdapterData = AccessPointsAdapterData(),
-    private val accessPointDetail: AccessPointDetail = AccessPointDetail(),
     private val accessPointPopup: AccessPointPopup = AccessPointPopup(),
 ) : BaseExpandableListAdapter(),
     UpdateNotifier {
@@ -42,16 +44,18 @@ class AccessPointsAdapter(
         parent: ViewGroup?,
     ): View {
         val wiFiDetail = getGroup(groupPosition)
-        val view = accessPointDetail.makeView(convertView, parent, wiFiDetail)
-        attachPopup(view, wiFiDetail)
-        val groupIndicator = view.findViewById<ImageView>(R.id.groupIndicator)
-        val childrenCount = getChildrenCount(groupPosition)
-        if (childrenCount > 0) {
-            groupIndicator.visibility = View.VISIBLE
-            groupIndicator.setImageResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
-        } else {
-            groupIndicator.visibility = View.GONE
+        val isGroup = getChildrenCount(groupPosition) > 0
+        val view = (convertView as? ComposeView) ?: ComposeView(parent!!.context)
+        view.setContent {
+            AppTheme {
+                AccessPointView(
+                    wiFiDetail = wiFiDetail,
+                    isGroup = isGroup,
+                    isExpanded = expanded,
+                )
+            }
         }
+        view.setOnClickListener { accessPointPopup.show(view, wiFiDetail) }
         return view
     }
 
@@ -63,10 +67,49 @@ class AccessPointsAdapter(
         parent: ViewGroup?,
     ): View {
         val wiFiDetail = getChild(groupPosition, childPosition)
-        val view = accessPointDetail.makeView(convertView, parent, wiFiDetail, true)
-        attachPopup(view, wiFiDetail)
-        view.findViewById<View>(R.id.groupIndicator).visibility = View.GONE
+        val view = (convertView as? ComposeView) ?: ComposeView(parent!!.context)
+        view.setContent {
+            AppTheme {
+                AccessPointView(
+                    wiFiDetail = wiFiDetail,
+                    isChild = true,
+                )
+            }
+        }
+        view.setOnClickListener { accessPointPopup.show(view, wiFiDetail) }
         return view
+    }
+
+    @Composable
+    private fun AccessPointView(
+        wiFiDetail: WiFiDetail,
+        isChild: Boolean = false,
+        isGroup: Boolean = false,
+        isExpanded: Boolean = false,
+    ) {
+        val viewType = MainContext.INSTANCE.settings.accessPointView()
+        if (viewType == AccessPointViewType.COMPLETE) {
+            AccessPointViewComplete(
+                wiFiDetail = wiFiDetail,
+                isChild = isChild,
+                isGroup = isGroup,
+                isExpanded = isExpanded,
+            )
+        } else {
+            val signal = wiFiDetail.wiFiSignal
+            val data =
+                AccessPointViewData(
+                    ssid = wiFiDetail.wiFiIdentifier.title,
+                    level = "${signal.level}dBm",
+                    channel = signal.channelDisplay(),
+                    primaryFrequency = "${signal.primaryFrequency}${WiFiSignal.FREQUENCY_UNITS}",
+                    distanceText = signal.distance,
+                    isGrouped = isChild,
+                    security = wiFiDetail.wiFiSecurity.security.name,
+                    showGroupIndicator = isGroup,
+                )
+            AccessPointViewCompact(data = data)
+        }
     }
 
     override fun update(wiFiData: WiFiData) {
@@ -102,14 +145,4 @@ class AccessPointsAdapter(
     override fun onGroupCollapsed(groupPosition: Int) = accessPointsAdapterData.onGroupCollapsed(groupPosition)
 
     override fun onGroupExpanded(groupPosition: Int) = accessPointsAdapterData.onGroupExpanded(groupPosition)
-
-    private fun attachPopup(
-        view: View,
-        wiFiDetail: WiFiDetail,
-    ) {
-        view.findViewById<View>(R.id.attachPopup)?.let {
-            accessPointPopup.attach(it, wiFiDetail)
-            accessPointPopup.attach(view.findViewById(R.id.ssid), wiFiDetail)
-        }
-    }
 }

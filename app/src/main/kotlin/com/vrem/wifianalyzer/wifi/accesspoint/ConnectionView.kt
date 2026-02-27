@@ -21,19 +21,21 @@ import android.net.wifi.WifiInfo
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.isEmpty
 import com.vrem.wifianalyzer.MainActivity
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
+import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier
 
 class ConnectionView(
     private val mainActivity: MainActivity,
-    private val accessPointDetail: AccessPointDetail = AccessPointDetail(),
     private val accessPointPopup: AccessPointPopup = AccessPointPopup(),
     private val warningView: WarningView = WarningView(mainActivity),
 ) : UpdateNotifier {
@@ -65,13 +67,32 @@ class ConnectionView(
         } else {
             connectionView.visibility = View.VISIBLE
             val parent = connectionView.findViewById<ViewGroup>(R.id.connectionDetail)
-            val view =
-                accessPointDetail.makeView(parent.getChildAt(0), parent, connection, layout = connectionViewType.layout)
-            if (parent.isEmpty()) {
-                parent.addView(view)
+            val view = (parent.getChildAt(0) as? ComposeView) ?: ComposeView(mainActivity).apply {
+                parent.removeAllViews()
+                parent.addView(this)
+            }
+            view.setContent {
+                AppTheme {
+                    if (connectionViewType == ConnectionViewType.COMPLETE) {
+                        AccessPointViewComplete(wiFiDetail = connection)
+                    } else {
+                        val signal = connection.wiFiSignal
+                        val data = AccessPointViewData(
+                            ssid = connection.wiFiIdentifier.title,
+                            level = "${signal.level}dBm",
+                            channel = signal.channelDisplay(),
+                            primaryFrequency = "${signal.primaryFrequency}${WiFiSignal.FREQUENCY_UNITS}",
+                            distanceText = signal.distance,
+                            isGrouped = false,
+                            security = connection.wiFiSecurity.security.name,
+                            showGroupIndicator = false
+                        )
+                        AccessPointViewCompact(data = data)
+                    }
+                }
             }
             setViewConnection(connectionView, wiFiConnection)
-            attachPopup(view, connection)
+            view.setOnClickListener { accessPointPopup.show(view, connection) }
         }
     }
 
@@ -88,16 +109,6 @@ class ConnectionView(
         } else {
             textLinkSpeed.visibility = View.VISIBLE
             textLinkSpeed.text = "$linkSpeed${WifiInfo.LINK_SPEED_UNITS}"
-        }
-    }
-
-    private fun attachPopup(
-        view: View,
-        wiFiDetail: WiFiDetail,
-    ) {
-        view.findViewById<View>(R.id.attachPopup)?.let {
-            accessPointPopup.attach(it, wiFiDetail)
-            accessPointPopup.attach(view.findViewById(R.id.ssid), wiFiDetail)
         }
     }
 }
