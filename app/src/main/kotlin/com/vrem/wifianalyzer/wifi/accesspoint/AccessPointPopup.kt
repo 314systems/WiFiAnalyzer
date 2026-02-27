@@ -18,33 +18,44 @@
 package com.vrem.wifianalyzer.wifi.accesspoint
 
 import android.view.View
-import androidx.appcompat.app.AlertDialog
+import android.view.ViewGroup
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
+import androidx.compose.ui.tooling.preview.Preview
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 
 class AccessPointPopup {
     fun show(
         view: View,
-        wiFiDetail: WiFiDetail,
-    ): AlertDialog {
-        val composeView =
-            ComposeView(view.context).apply {
-                setContent {
-                    AppTheme {
-                        AccessPointViewPopup(wiFiDetail = wiFiDetail)
-                    }
+        wiFiDetail: WiFiDetail = WiFiDetail.EMPTY,
+    ) {
+        val rootLayout = view.rootView as? ViewGroup ?: return
+        val composeView = ComposeView(view.context)
+        composeView.setContent {
+            var showDialog by remember { mutableStateOf(true) }
+            if (showDialog) {
+                AppTheme {
+                    AccessPointAlertDialog(
+                        wiFiDetail = wiFiDetail,
+                        onDismiss = {
+                            showDialog = false
+                            rootLayout.removeView(composeView)
+                        },
+                    )
                 }
             }
-
-        val alertDialog = AlertDialog
-                .Builder(view.context)
-                .setView(composeView)
-                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                    dialog.cancel()
-                }.create()
-        alertDialog.show()
-        return alertDialog
+        }
+        rootLayout.addView(composeView)
     }
 
     fun attach(
@@ -54,5 +65,40 @@ class AccessPointPopup {
         view.setOnClickListener {
             runCatching { show(view, wiFiDetail) }
         }
+    }
+}
+
+@Composable
+fun AccessPointAlertDialog(
+    wiFiDetail: WiFiDetail,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(id = android.R.string.ok))
+            }
+        },
+        text = {
+            AccessPointViewPopup(wiFiDetail = wiFiDetail)
+        },
+    )
+}
+
+@Preview(
+    showBackground = true,
+    widthDp = 320,
+    uiMode = UI_MODE_NIGHT_YES,
+    name = "AccessPointAlertDialogPreviewDark"
+)
+@Preview(showBackground = true)
+@Composable
+fun AccessPointAlertDialogPreview() {
+    AppTheme {
+        AccessPointAlertDialog(
+            wiFiDetail = WiFiDetail.EMPTY,
+            onDismiss = {},
+        )
     }
 }

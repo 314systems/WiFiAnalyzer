@@ -65,7 +65,7 @@ fun AccessPointViewComplete(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (isChild) {
-            Spacer(modifier = Modifier.width(16.dp)) // Equivalent to @dimen/list_view_item_horizontal_tab
+            Spacer(modifier = Modifier.width(16.dp))
         }
 
         Column(modifier = Modifier.weight(1f)) {
@@ -76,20 +76,22 @@ fun AccessPointViewComplete(
                             id = if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
                         ),
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp).padding(end = 4.dp),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 4.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                     )
                 }
-                SSIDHeader(wiFiDetail.wiFiIdentifier.title)
+                SSIDHeader(title = wiFiDetail.wiFiIdentifier.title)
             }
 
             Row(
                 modifier = Modifier.padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SignalIndicator(wiFiDetail)
+                SignalIndicator(wiFiDetail = wiFiDetail)
                 Spacer(modifier = Modifier.width(12.dp))
-                DetailedInfo(wiFiDetail)
+                DetailedInfo(wiFiDetail = wiFiDetail)
             }
         }
     }
@@ -133,17 +135,20 @@ private fun SignalIndicator(
                 modifier = Modifier.size(40.dp),
                 colorFilter = ColorFilter.tint(color)
             )
-            StandardBadge(signal)
-            SecurityBadge(wiFiDetail)
+            StandardBadge(signal = signal)
+            SecurityBadge(wiFiDetail = wiFiDetail)
         }
     }
 }
 
 @Composable
-private fun BoxScope.StandardBadge(signal: WiFiSignal) {
+private fun BoxScope.StandardBadge(
+    signal: WiFiSignal,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = stringResource(id = signal.extra.wiFiStandard.valueResource),
-        modifier = Modifier.align(Alignment.BottomStart),
+        modifier = modifier.align(Alignment.BottomStart),
         color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.labelSmall.copy(
             fontWeight = FontWeight.Bold,
@@ -153,45 +158,57 @@ private fun BoxScope.StandardBadge(signal: WiFiSignal) {
 }
 
 @Composable
-private fun BoxScope.SecurityBadge(wiFiDetail: WiFiDetail) {
+private fun BoxScope.SecurityBadge(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
     Image(
         painter = painterResource(id = wiFiDetail.wiFiSecurity.security.imageResource),
         contentDescription = null,
-        modifier = Modifier
+        modifier = modifier
             .size(16.dp)
             .align(Alignment.BottomEnd)
     )
 }
 
 @Composable
-private fun DetailedInfo(wiFiDetail: WiFiDetail) {
+private fun DetailedInfo(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
     val signal = wiFiDetail.wiFiSignal
-    Column {
+    Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ChannelLabel(signal.channelDisplay())
+            ChannelLabel(channel = signal.channelDisplay())
             Spacer(modifier = Modifier.width(8.dp))
-            FrequencyLabel(signal.primaryFrequency)
+            FrequencyLabel(frequency = signal.primaryFrequency)
             Spacer(modifier = Modifier.width(8.dp))
-            DistanceLabel(signal.distance)
+            DistanceLabel(distance = signal.distance)
         }
 
         Row(
             modifier = Modifier.padding(top = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            FrequencyRangeLabel(signal)
+            FrequencyRangeLabel(signal = signal)
             Spacer(modifier = Modifier.width(8.dp))
-            WidthLabel(signal)
-            VendorLabel(wiFiDetail.wiFiAdditional.vendorName)
+            WidthLabel(signal = signal)
+            VendorLabel(vendor = wiFiDetail.wiFiAdditional.vendorName)
         }
 
-        CapabilitiesLabel(wiFiDetail.wiFiSecurity.securities.joinToString(" ", "[", "]"))
+        CapabilitiesLabel(capabilities = wiFiDetail.wiFiSecurity.securities.joinToString(" ", "[", "]"))
     }
 }
 
 @Composable
-private fun ChannelLabel(channel: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun ChannelLabel(
+    channel: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             text = stringResource(R.string.channel_short_name),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -207,47 +224,67 @@ private fun ChannelLabel(channel: String) {
 }
 
 @Composable
-private fun FrequencyLabel(frequency: Int) {
+private fun FrequencyLabel(
+    frequency: Int,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = "$frequency${WiFiSignal.FREQUENCY_UNITS}",
+        modifier = modifier,
         color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.bodySmall
     )
 }
 
 @Composable
-private fun DistanceLabel(distance: String) {
+private fun DistanceLabel(
+    distance: String,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = distance,
+        modifier = modifier,
         color = MaterialTheme.colorScheme.primary,
         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
     )
 }
 
 @Composable
-private fun FrequencyRangeLabel(signal: WiFiSignal) {
+private fun FrequencyRangeLabel(
+    signal: WiFiSignal,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = "${signal.wiFiChannelStart.frequency} - ${signal.wiFiChannelEnd.frequency}",
+        modifier = modifier,
         color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.bodySmall
     )
 }
 
 @Composable
-private fun WidthLabel(signal: WiFiSignal) {
+private fun WidthLabel(
+    signal: WiFiSignal,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = stringResource(id = signal.wiFiWidth.textResource),
+        modifier = modifier,
         color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.bodySmall
     )
 }
 
 @Composable
-private fun VendorLabel(vendor: String) {
+private fun VendorLabel(
+    vendor: String,
+    modifier: Modifier = Modifier
+) {
     if (vendor.isNotEmpty()) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = vendor,
+            modifier = modifier,
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
@@ -257,28 +294,27 @@ private fun VendorLabel(vendor: String) {
 }
 
 @Composable
-private fun CapabilitiesLabel(capabilities: String) {
+private fun CapabilitiesLabel(
+    capabilities: String,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = capabilities,
-        modifier = Modifier.padding(top = 2.dp),
+        modifier = modifier.padding(top = 2.dp),
         color = MaterialTheme.colorScheme.outline,
         style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic)
     )
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    widthDp = 320,
+    uiMode = UI_MODE_NIGHT_YES,
+    name = "AccessPointViewCompletePreviewDark"
+)
+@Preview(showBackground = true, widthDp = 320)
 @Composable
 fun AccessPointViewCompletePreview() {
-    AppTheme {
-        Surface {
-            AccessPointViewComplete(wiFiDetail = WiFiDetail.EMPTY)
-        }
-    }
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun AccessPointViewCompleteDarkPreview() {
     AppTheme {
         Surface {
             AccessPointViewComplete(wiFiDetail = WiFiDetail.EMPTY)

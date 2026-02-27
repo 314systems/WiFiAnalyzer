@@ -46,41 +46,39 @@ fun AccessPointViewPopup(
     wiFiDetail: WiFiDetail,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
+    Column(
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            AccessPointViewComplete(wiFiDetail = wiFiDetail)
+        AccessPointViewComplete(wiFiDetail = wiFiDetail)
 
-            WiFiBandInfo(wiFiDetail)
-            ChannelRangeInfo(wiFiDetail)
-            StandardAndRoamingInfo(wiFiDetail)
-            CapabilitiesInfo(wiFiDetail)
-            VendorInfo(wiFiDetail)
-        }
+        WiFiBandInfo(wiFiDetail = wiFiDetail)
+        ChannelRangeInfo(wiFiDetail = wiFiDetail)
+        StandardAndRoamingInfo(wiFiDetail = wiFiDetail)
+        CapabilitiesInfo(wiFiDetail = wiFiDetail)
+        VendorInfo(wiFiDetail = wiFiDetail)
     }
 }
 
 @Composable
-private fun WiFiBandInfo(wiFiDetail: WiFiDetail) {
+private fun WiFiBandInfo(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = stringResource(id = wiFiDetail.wiFiSignal.wiFiBand.textResource),
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = modifier.padding(top = 8.dp),
         color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
     )
 }
 
 @Composable
-private fun ChannelRangeInfo(wiFiDetail: WiFiDetail) {
+private fun ChannelRangeInfo(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
     val signal = wiFiDetail.wiFiSignal
-    Row(modifier = Modifier.padding(top = 4.dp)) {
+    Row(modifier = modifier.padding(top = 4.dp)) {
         Text(
             text = stringResource(R.string.channel_short_name),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -114,9 +112,12 @@ private fun ChannelRangeInfo(wiFiDetail: WiFiDetail) {
 }
 
 @Composable
-private fun StandardAndRoamingInfo(wiFiDetail: WiFiDetail) {
+private fun StandardAndRoamingInfo(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
     val signal = wiFiDetail.wiFiSignal
-    Row(modifier = Modifier.padding(top = 4.dp)) {
+    Row(modifier = modifier.padding(top = 4.dp)) {
         Text(
             text = stringResource(id = signal.extra.wiFiStandard.fullResource),
             color = MaterialTheme.colorScheme.tertiary,
@@ -143,8 +144,11 @@ private fun StandardAndRoamingInfo(wiFiDetail: WiFiDetail) {
 }
 
 @Composable
-private fun CapabilitiesInfo(wiFiDetail: WiFiDetail) {
-    Column(modifier = Modifier.padding(top = 4.dp)) {
+private fun CapabilitiesInfo(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.padding(top = 4.dp)) {
         Text(
             text = wiFiDetail.wiFiSecurity.capabilities,
             color = MaterialTheme.colorScheme.outline,
@@ -163,11 +167,14 @@ private fun CapabilitiesInfo(wiFiDetail: WiFiDetail) {
 }
 
 @Composable
-private fun VendorInfo(wiFiDetail: WiFiDetail) {
+private fun VendorInfo(
+    wiFiDetail: WiFiDetail,
+    modifier: Modifier = Modifier
+) {
     if (wiFiDetail.wiFiAdditional.vendorName.isNotEmpty()) {
         Text(
             text = wiFiDetail.wiFiAdditional.vendorName,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = modifier.padding(top = 4.dp),
             style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -175,18 +182,21 @@ private fun VendorInfo(wiFiDetail: WiFiDetail) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    widthDp = 320,
+    uiMode = UI_MODE_NIGHT_YES,
+    name = "AccessPointViewPopupPreviewDark"
+)
+@Preview(showBackground = true, widthDp = 320)
 @Composable
 fun AccessPointViewPopupPreview() {
     AppTheme {
-        AccessPointViewPopup(wiFiDetail = WiFiDetail.EMPTY)
-    }
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun AccessPointViewPopupDarkPreview() {
-    AppTheme {
-        AccessPointViewPopup(wiFiDetail = WiFiDetail.EMPTY)
+        Surface {
+            AccessPointViewPopup(
+                wiFiDetail = WiFiDetail.EMPTY,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 }
