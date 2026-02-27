@@ -166,8 +166,9 @@ private fun BoxScope.SecurityBadge(
         painter = painterResource(id = wiFiDetail.wiFiSecurity.security.imageResource),
         contentDescription = null,
         modifier = modifier
-            .size(16.dp)
-            .align(Alignment.BottomEnd)
+            .size(12.dp)
+            .align(Alignment.BottomEnd),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
     )
 }
 

@@ -32,22 +32,22 @@ private val extras = listOf("SAE", "EAP_SUITE_B_192", "OWE")
 private val regex = Regex("[^A-Z0-9_]")
 
 enum class Security(
-    @DrawableRes val imageResource: Int,
+    @param:DrawableRes val imageResource: Int,
     val extras: List<String> = listOf(),
 ) {
-    NONE(R.drawable.ic_lock_open),
-    WPS(R.drawable.ic_lock_outline),
-    WEP(R.drawable.ic_lock_outline),
-    WPA(R.drawable.ic_lock),
-    WPA2(R.drawable.ic_lock),
-    WPA3(R.drawable.ic_lock, extras),
+    NONE(R.drawable.lock_open_24px),
+    WPS(R.drawable.lock_open_24px),
+    WEP(R.drawable.no_encryption_24px),
+    WPA(R.drawable.lock_24px),
+    WPA2(R.drawable.lock_24px),
+    WPA3(R.drawable.enhanced_encryption_24px, extras),
 }
 
 typealias SecurityTypeId = Int
 
 enum class WiFiSecurityType(
     val securityTypeId: SecurityTypeId,
-    @StringRes val textResource: Int,
+    @param:StringRes val textResource: Int,
     val security: Security = Security.NONE,
 ) {
     UNKNOWN(-1, R.string.security_type_unknown),
