@@ -21,56 +21,56 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.databinding.ChannelAvailableContentBinding
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.band.WiFiChannelCountry
 import com.vrem.wifianalyzer.wifi.model.WiFiWidth
 
 class ChannelAvailableFragment : Fragment() {
-    private lateinit var binding: ChannelAvailableContentBinding
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        binding = ChannelAvailableContentBinding.inflate(inflater, container, false)
-        update()
-        return binding.root
-    }
-
-    private fun update() {
-        val settings = MainContext.INSTANCE.settings
-        val countryCode = settings.countryCode()
-        val languageLocale = settings.languageLocale()
-        binding.apply {
-            val textViews =
-                listOf(
-                    Triple(channelsAvailable2GHz20MHz, WiFiBand.GHZ2, WiFiWidth.MHZ_20),
-                    Triple(channelsAvailable2GHz40MHz, WiFiBand.GHZ2, WiFiWidth.MHZ_40),
-                    Triple(channelsAvailable5GHz20MHz, WiFiBand.GHZ5, WiFiWidth.MHZ_20),
-                    Triple(channelsAvailable5GHz40MHz, WiFiBand.GHZ5, WiFiWidth.MHZ_40),
-                    Triple(channelsAvailable5GHz80MHz, WiFiBand.GHZ5, WiFiWidth.MHZ_80),
-                    Triple(channelsAvailable5GHz160MHz, WiFiBand.GHZ5, WiFiWidth.MHZ_160),
-                    Triple(channelsAvailable6GHz20MHz, WiFiBand.GHZ6, WiFiWidth.MHZ_20),
-                    Triple(channelsAvailable6GHz40MHz, WiFiBand.GHZ6, WiFiWidth.MHZ_40),
-                    Triple(channelsAvailable6GHz80MHz, WiFiBand.GHZ6, WiFiWidth.MHZ_80),
-                    Triple(channelsAvailable6GHz160MHz, WiFiBand.GHZ6, WiFiWidth.MHZ_160),
-                    Triple(channelsAvailable6GHz320MHz, WiFiBand.GHZ6, WiFiWidth.MHZ_320),
-                )
-            channelsAvailableCountryCode.text = countryCode
-            channelsAvailableCountryName.text = WiFiChannelCountry.find(countryCode).countryName(languageLocale)
-            textViews.forEach { (textView, wiFiBand, wiFiWidth) ->
-                textView.text =
-                    wiFiBand.wiFiChannels.availableChannels(wiFiWidth, wiFiBand, countryCode).joinToString(", ")
+        return ComposeView(requireContext()).apply {
+            setContent {
+                AppTheme {
+                    ChannelAvailableContent(state = makeState())
+                }
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        update()
+    private fun makeState(): ChannelAvailableState {
+        val settings = MainContext.INSTANCE.settings
+        val countryCode = settings.countryCode()
+        val languageLocale = settings.languageLocale()
+
+        val bands = listOf(
+            makeBandState(WiFiBand.GHZ2, listOf(WiFiWidth.MHZ_20, WiFiWidth.MHZ_40), countryCode),
+            makeBandState(WiFiBand.GHZ5, listOf(WiFiWidth.MHZ_20, WiFiWidth.MHZ_40, WiFiWidth.MHZ_80, WiFiWidth.MHZ_160), countryCode),
+            makeBandState(WiFiBand.GHZ6, listOf(WiFiWidth.MHZ_20, WiFiWidth.MHZ_40, WiFiWidth.MHZ_80, WiFiWidth.MHZ_160, WiFiWidth.MHZ_320), countryCode)
+        )
+
+        return ChannelAvailableState(
+            countryCode = countryCode,
+            countryName = WiFiChannelCountry.find(countryCode).countryName(languageLocale),
+            bands = bands.filter { it.widths.isNotEmpty() }
+        )
+    }
+
+    private fun makeBandState(wiFiBand: WiFiBand, widths: List<WiFiWidth>, countryCode: String): BandState {
+        val widthStates = widths.map { wiFiWidth ->
+            val channels = wiFiBand.wiFiChannels.availableChannels(wiFiWidth, wiFiBand, countryCode).joinToString(", ")
+            WidthState(wiFiWidth.textResource, channels)
+        }.filter { it.channels.isNotEmpty() }
+
+        return BandState(
+            title = getString(wiFiBand.textResource),
+            widths = widthStates
+        )
     }
 }
