@@ -22,7 +22,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.compose.ui.platform.ComposeView
-import androidx.core.view.isEmpty
 import com.vrem.wifianalyzer.MainActivity
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
@@ -30,7 +29,6 @@ import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection
 import com.vrem.wifianalyzer.wifi.model.WiFiData
-import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier
 
@@ -73,8 +71,12 @@ class ConnectionView(
             }
             view.setContent {
                 AppTheme {
+                    val onClick = { accessPointPopup.show(view, connection) }
                     if (connectionViewType == ConnectionViewType.COMPLETE) {
-                        AccessPointViewComplete(wiFiDetail = connection)
+                        AccessPointViewComplete(
+                            wiFiDetail = connection,
+                            onClick = onClick
+                        )
                     } else {
                         val signal = connection.wiFiSignal
                         val data = AccessPointViewData(
@@ -87,12 +89,14 @@ class ConnectionView(
                             security = connection.wiFiSecurity.security.name,
                             showGroupIndicator = false
                         )
-                        AccessPointViewCompact(data = data)
+                        AccessPointViewCompact(
+                            data = data,
+                            onClick = onClick
+                        )
                     }
                 }
             }
             setViewConnection(connectionView, wiFiConnection)
-            view.setOnClickListener { accessPointPopup.show(view, connection) }
         }
     }
 

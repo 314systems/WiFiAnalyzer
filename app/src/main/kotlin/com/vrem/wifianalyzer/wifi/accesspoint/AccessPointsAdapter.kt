@@ -52,10 +52,10 @@ class AccessPointsAdapter(
                     wiFiDetail = wiFiDetail,
                     isGroup = isGroup,
                     isExpanded = expanded,
+                    onClick = { accessPointPopup.show(view, wiFiDetail) }
                 )
             }
         }
-        view.setOnClickListener { accessPointPopup.show(view, wiFiDetail) }
         return view
     }
 
@@ -73,16 +73,17 @@ class AccessPointsAdapter(
                 AccessPointView(
                     wiFiDetail = wiFiDetail,
                     isChild = true,
+                    onClick = { accessPointPopup.show(view, wiFiDetail) }
                 )
             }
         }
-        view.setOnClickListener { accessPointPopup.show(view, wiFiDetail) }
         return view
     }
 
     @Composable
     private fun AccessPointView(
         wiFiDetail: WiFiDetail,
+        onClick: () -> Unit,
         isChild: Boolean = false,
         isGroup: Boolean = false,
         isExpanded: Boolean = false,
@@ -91,6 +92,7 @@ class AccessPointsAdapter(
         if (viewType == AccessPointViewType.COMPLETE) {
             AccessPointViewComplete(
                 wiFiDetail = wiFiDetail,
+                onClick = onClick,
                 isChild = isChild,
                 isGroup = isGroup,
                 isExpanded = isExpanded,
@@ -108,7 +110,10 @@ class AccessPointsAdapter(
                     security = wiFiDetail.wiFiSecurity.security.name,
                     showGroupIndicator = isGroup,
                 )
-            AccessPointViewCompact(data = data)
+            AccessPointViewCompact(
+                data = data,
+                onClick = onClick
+            )
         }
     }
 

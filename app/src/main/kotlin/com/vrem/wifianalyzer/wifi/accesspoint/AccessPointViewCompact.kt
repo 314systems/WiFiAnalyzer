@@ -19,15 +19,12 @@ package com.vrem.wifianalyzer.wifi.accesspoint
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,14 +33,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.ui.theme.AppTheme
-import com.vrem.wifianalyzer.ui.theme.channel
 
 /**
  * Data class representing the UI state for an Access Point in compact view.
@@ -62,63 +55,24 @@ data class AccessPointViewData(
 @Composable
 fun AccessPointViewCompact(
     data: AccessPointViewData,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (data.isGrouped) {
-                Spacer(modifier = Modifier.width(24.dp))
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                SsidHeader(
-                    ssid = data.ssid,
-                    showGroupIndicator = data.showGroupIndicator
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                AccessPointDetails(
-                    data = data,
-                    modifier = Modifier.padding(start = if (data.showGroupIndicator) 24.dp else 0.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SsidHeader(
-    ssid: String,
-    showGroupIndicator: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Row(
+    AccessPointRow(
+        onClick = onClick,
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+        isChild = data.isGrouped
     ) {
-        if (showGroupIndicator) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_expand_more),
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-        Text(
-            text = ssid,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+        SSIDHeader(
+            ssid = data.ssid,
+            isExpanded = if (data.showGroupIndicator) false else null
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        AccessPointDetails(
+            data = data,
+            modifier = Modifier.padding(start = if (data.showGroupIndicator) 24.dp else 0.dp)
         )
     }
 }
@@ -137,25 +91,15 @@ private fun AccessPointDetails(
             modifier = Modifier.padding(end = 8.dp),
             style = MaterialTheme.typography.bodyMedium
         )
-        Text(
-            text = stringResource(R.string.channel_short_name),
-            modifier = Modifier.padding(end = 4.dp),
-            color = MaterialTheme.colorScheme.channel,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = data.channel,
+        ChannelLabel(
+            channel = data.channel,
             modifier = Modifier.padding(end = 8.dp),
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
+            textStyle = MaterialTheme.typography.bodyMedium
         )
-        Text(
-            text = data.primaryFrequency,
+        FrequencyLabel(
+            frequency = data.primaryFrequency,
             modifier = Modifier.padding(end = 8.dp),
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodyMedium
+            textStyle = MaterialTheme.typography.bodyMedium
         )
         if (data.security.isNotEmpty()) {
             Image(
@@ -166,11 +110,9 @@ private fun AccessPointDetails(
             )
             Spacer(modifier = Modifier.width(4.dp))
         }
-        Text(
-            text = data.distanceText,
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
+        DistanceLabel(
+            distance = data.distanceText,
+            textStyle = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -202,7 +144,9 @@ private val PreviewUngroupedData = AccessPointViewData(
 @Composable
 fun AccessPointViewCompactGroupedPreview() {
     AppTheme {
-        AccessPointViewCompact(data = PreviewGroupedData)
+        Surface {
+            AccessPointViewCompact(data = PreviewGroupedData, onClick = {})
+        }
     }
 }
 
@@ -211,6 +155,8 @@ fun AccessPointViewCompactGroupedPreview() {
 @Composable
 fun AccessPointViewCompactUngroupedPreview() {
     AppTheme {
-        AccessPointViewCompact(data = PreviewUngroupedData)
+        Surface {
+            AccessPointViewCompact(data = PreviewUngroupedData, onClick = {})
+        }
     }
 }

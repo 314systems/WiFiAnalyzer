@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,7 +44,6 @@ import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal
@@ -54,61 +52,30 @@ import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 fun AccessPointViewComplete(
     wiFiDetail: WiFiDetail,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     isChild: Boolean = false,
     isGroup: Boolean = false,
     isExpanded: Boolean = false
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+    AccessPointRow(
+        onClick = onClick,
+        modifier = modifier,
+        isChild = isChild
     ) {
-        if (isChild) {
-            Spacer(modifier = Modifier.width(16.dp))
-        }
+        SSIDHeader(
+            ssid = wiFiDetail.wiFiIdentifier.title,
+            isExpanded = if (isGroup) isExpanded else null
+        )
 
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isGroup) {
-                    Image(
-                        painter = painterResource(
-                            id = if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(end = 4.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                    )
-                }
-                SSIDHeader(title = wiFiDetail.wiFiIdentifier.title)
-            }
-
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SignalIndicator(wiFiDetail = wiFiDetail)
-                Spacer(modifier = Modifier.width(12.dp))
-                DetailedInfo(wiFiDetail = wiFiDetail)
-            }
+        Row(
+            modifier = Modifier.padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SignalIndicator(wiFiDetail = wiFiDetail)
+            Spacer(modifier = Modifier.width(12.dp))
+            DetailedInfo(wiFiDetail = wiFiDetail)
         }
     }
-}
-
-@Composable
-private fun SSIDHeader(
-    title: String,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = title,
-        modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
 }
 
 @Composable
@@ -182,7 +149,7 @@ private fun DetailedInfo(
         Row(verticalAlignment = Alignment.CenterVertically) {
             ChannelLabel(channel = signal.channelDisplay())
             Spacer(modifier = Modifier.width(8.dp))
-            FrequencyLabel(frequency = signal.primaryFrequency)
+            FrequencyLabel(frequency = "${signal.primaryFrequency}${WiFiSignal.FREQUENCY_UNITS}")
             Spacer(modifier = Modifier.width(8.dp))
             DistanceLabel(distance = signal.distance)
         }
@@ -199,55 +166,6 @@ private fun DetailedInfo(
 
         CapabilitiesLabel(capabilities = wiFiDetail.wiFiSecurity.securities.joinToString(" ", "[", "]"))
     }
-}
-
-@Composable
-private fun ChannelLabel(
-    channel: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(R.string.channel_short_name),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = channel,
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
-        )
-    }
-}
-
-@Composable
-private fun FrequencyLabel(
-    frequency: Int,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = "$frequency${WiFiSignal.FREQUENCY_UNITS}",
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.tertiary,
-        style = MaterialTheme.typography.bodySmall
-    )
-}
-
-@Composable
-private fun DistanceLabel(
-    distance: String,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = distance,
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
-    )
 }
 
 @Composable

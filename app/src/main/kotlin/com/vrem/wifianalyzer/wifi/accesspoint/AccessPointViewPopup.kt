@@ -18,6 +18,7 @@
 
 package com.vrem.wifianalyzer.wifi.accesspoint
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vrem.wifianalyzer.R
@@ -44,18 +44,24 @@ import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 @Composable
 fun AccessPointViewPopup(
     wiFiDetail: WiFiDetail,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        AccessPointViewComplete(wiFiDetail = wiFiDetail)
+        AccessPointViewComplete(
+            wiFiDetail = wiFiDetail,
+            onClick = onClick
+        )
 
-        WiFiBandInfo(wiFiDetail = wiFiDetail)
-        ChannelRangeInfo(wiFiDetail = wiFiDetail)
-        StandardAndRoamingInfo(wiFiDetail = wiFiDetail)
-        CapabilitiesInfo(wiFiDetail = wiFiDetail)
-        VendorInfo(wiFiDetail = wiFiDetail)
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            WiFiBandInfo(wiFiDetail = wiFiDetail)
+            ChannelRangeInfo(wiFiDetail = wiFiDetail)
+            StandardAndRoamingInfo(wiFiDetail = wiFiDetail)
+            CapabilitiesInfo(wiFiDetail = wiFiDetail)
+            VendorInfo(wiFiDetail = wiFiDetail)
+        }
     }
 }
 
@@ -182,20 +188,14 @@ private fun VendorInfo(
     }
 }
 
-@Preview(
-    showBackground = true,
-    widthDp = 320,
-    uiMode = UI_MODE_NIGHT_YES,
-    name = "AccessPointViewPopupPreviewDark"
-)
-@Preview(showBackground = true, widthDp = 320)
+@Preview(showBackground = true, name = "Light Mode")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
 @Composable
 fun AccessPointViewPopupPreview() {
     AppTheme {
         Surface {
             AccessPointViewPopup(
-                wiFiDetail = WiFiDetail.EMPTY,
-                modifier = Modifier.padding(16.dp)
+                wiFiDetail = WiFiDetail.EMPTY
             )
         }
     }

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
 package com.vrem.wifianalyzer.wifi.accesspoint
 
 import android.view.View
@@ -27,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
@@ -72,6 +74,7 @@ class AccessPointPopup {
 fun AccessPointAlertDialog(
     wiFiDetail: WiFiDetail,
     onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -81,8 +84,12 @@ fun AccessPointAlertDialog(
             }
         },
         text = {
-            AccessPointViewPopup(wiFiDetail = wiFiDetail)
+            AccessPointViewPopup(
+                wiFiDetail = wiFiDetail,
+                onClick = null
+            )
         },
+        modifier = modifier,
     )
 }
 
