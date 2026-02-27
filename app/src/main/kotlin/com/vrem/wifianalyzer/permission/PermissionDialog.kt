@@ -17,35 +17,161 @@
  */
 package com.vrem.wifianalyzer.permission
 
-import android.app.Activity
-import android.app.AlertDialog
+import android.content.res.Configuration
 import android.os.Build
-import android.view.View
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.databinding.InfoPermissionBinding
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 
-class PermissionDialog(
-    private val activity: Activity,
+@Composable
+fun PermissionDialog(
+    modifier: Modifier = Modifier,
+    onConfirm: () -> Unit,
+    onTerminateApp: () -> Unit
 ) {
-    fun show(requestPermission: () -> Unit): View {
-        val binding = InfoPermissionBinding.inflate(activity.layoutInflater)
-        binding.infoThrottling.throttling.visibility = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) View.VISIBLE else View.GONE
+    val uriHandler = LocalUriHandler.current
+    val faqUrl = stringResource(id = R.string.no_data_url)
 
-        AlertDialog
-            .Builder(activity)
-            .setView(binding.root)
-            .setTitle(R.string.app_full_name)
-            .setIcon(R.drawable.ic_app)
-            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                dialog.dismiss()
-                requestPermission()
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onTerminateApp,
+        title = {
+            Text(text = stringResource(id = R.string.app_name))
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ThrottlingInfo()
+                LocationInfo()
+                FaqInfo(faqUrl = faqUrl) { uriHandler.openUri(faqUrl) }
             }
-            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-                activity.finish()
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(text = stringResource(id = android.R.string.ok))
             }
-            .show()
+        },
+        dismissButton = {
+            TextButton(onClick = onTerminateApp) {
+                Text(text = stringResource(id = android.R.string.cancel))
+            }
+        }
+    )
+}
 
-        return binding.root
+@Composable
+private fun ThrottlingInfo(modifier: Modifier = Modifier) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        Text(
+            text = stringResource(id = R.string.throttling_msg),
+            fontWeight = FontWeight.Bold,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun LocationInfo(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = stringResource(id = R.string.permission_msg)
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_location_on),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(text = stringResource(id = R.string.location_msg))
+        }
+    }
+}
+
+@Composable
+private fun FaqInfo(
+    faqUrl: String,
+    modifier: Modifier = Modifier,
+    onFaqClick: () -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.no_data_msg),
+            textAlign = TextAlign.Center,
+        )
+        TextButton(
+            onClick = onFaqClick
+        ) {
+            Text(
+                text = faqUrl,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PermissionDialogPreview() {
+    AppTheme {
+        PermissionDialog(
+            onConfirm = {},
+            onTerminateApp = {}
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun DarkPermissionDialogPreview() {
+    AppTheme {
+        PermissionDialog(
+            onConfirm = {},
+            onTerminateApp = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MaterialPermissionDialogPreview() {
+    MaterialTheme {
+        PermissionDialog(
+            onConfirm = {},
+            onTerminateApp = {}
+        )
     }
 }
