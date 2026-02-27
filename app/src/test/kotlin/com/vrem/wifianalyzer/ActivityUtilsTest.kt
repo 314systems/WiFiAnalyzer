@@ -101,12 +101,4 @@ class ActivityUtilsTest {
         // validate
         verify(mainActivity).startActivity(any())
     }
-
-    @Test
-    fun startLocationSettings() {
-        // execute
-        mainActivity.startLocationSettings()
-        // validate
-        verify(mainActivity).startActivity(any())
-    }
 }

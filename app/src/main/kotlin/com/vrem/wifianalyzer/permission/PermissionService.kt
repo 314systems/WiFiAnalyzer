@@ -17,11 +17,7 @@
  */
 package com.vrem.wifianalyzer.permission
 
-import android.app.Activity
 import android.content.Context
-import android.view.ViewGroup
-import androidx.compose.ui.platform.ComposeView
-import com.vrem.wifianalyzer.ui.theme.AppTheme
 
 class PermissionService(
     private val context: Context,
@@ -32,26 +28,4 @@ class PermissionService(
     fun locationEnabled(): Boolean = locationPermission.enabled()
 
     fun permissionGranted(): Boolean = ApplicationPermission.granted(context)
-
-    fun check(requestPermission: (String) -> Unit) {
-        val activity = context as? Activity ?: return
-        val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
-
-        val composeView = ComposeView(activity).apply {
-            setContent {
-                AppTheme {
-                    PermissionDialog(
-                        onConfirm = {
-                            (parent as? ViewGroup)?.removeView(this@apply)
-                            requestPermission(ApplicationPermission.PERMISSION)
-                        },
-                        onTerminateApp = {
-                            activity.finish()
-                        }
-                    )
-                }
-            }
-        }
-        rootView.addView(composeView)
-    }
 }

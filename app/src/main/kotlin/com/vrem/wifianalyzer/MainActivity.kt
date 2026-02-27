@@ -24,7 +24,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.GravityCompat
@@ -35,8 +34,10 @@ import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.navigation.NavigationMenuControl
 import com.vrem.wifianalyzer.navigation.NavigationMenuController
 import com.vrem.wifianalyzer.navigation.options.OptionMenu
+import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.accesspoint.ConnectionView
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
 
@@ -70,6 +71,15 @@ class MainActivity :
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.permissionComposeView.setContent {
+            AppTheme {
+                PermissionHandler(
+                    onPermissionGranted = { update() },
+                    onTerminateApp = { finish() }
+                )
+            }
+        }
+
         settings.registerOnSharedPreferenceChangeListener(this)
         optionMenu = OptionMenu()
 
@@ -96,16 +106,6 @@ class MainActivity :
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         drawerNavigation.onConfigurationChanged(newConfig)
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (!isGranted) {
-            finish()
-        } else {
-            update()
-        }
     }
 
     private val largeScreen: Boolean
@@ -163,12 +163,7 @@ class MainActivity :
         super.onResume()
         val scannerService: ScannerService = MainContext.INSTANCE.scannerService
         if (MainContext.INSTANCE.permissionService.permissionGranted()) {
-            if (!MainContext.INSTANCE.permissionService.locationEnabled()) {
-                startLocationSettings()
-            }
             scannerService.resume()
-        } else {
-            scannerService.pause()
         }
         updateActionBar()
         scannerService.register(connectionView)
@@ -182,16 +177,6 @@ class MainActivity :
 
     public override fun onStart() {
         super.onStart()
-        if (MainContext.INSTANCE.permissionService.permissionGranted()) {
-            if (!MainContext.INSTANCE.permissionService.locationEnabled()) {
-                startLocationSettings()
-            }
-            MainContext.INSTANCE.scannerService.resume()
-        } else {
-            MainContext.INSTANCE.permissionService.check { permission ->
-                requestPermissionLauncher.launch(permission)
-            }
-        }
         updateActionBar()
     }
 
