@@ -20,9 +20,15 @@
 
 buildscript {
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
-        gradlePluginPortal() // Added for plugin resolution
+        gradlePluginPortal()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:9.0.1'
@@ -31,13 +37,6 @@ buildscript {
 }
 
 allprojects {
-    repositories {
-        google()
-        maven {
-            url = 'https://maven.google.com'
-        }
-        mavenCentral()
-    }
     tasks.withType(JavaCompile).tap {
         configureEach {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
