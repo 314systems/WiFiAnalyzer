@@ -17,48 +17,78 @@
  */
 package com.vrem.wifianalyzer.wifi.accesspoint
 
-import android.widget.ExpandableListView
+import androidx.lifecycle.ViewModel
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.SIZE_MAX
 import com.vrem.wifianalyzer.SIZE_MIN
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE1
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE2
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE3
+import com.vrem.wifianalyzer.wifi.model.GroupBy
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.predicate.makeAccessPointsPredicate
+import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.security.MessageDigest
 
-class AccessPointsAdapterData(
-    private val accessPointsAdapterGroup: AccessPointsAdapterGroup = AccessPointsAdapterGroup(),
-    val wiFiDetails: MutableList<WiFiDetail> = mutableListOf(),
-) {
-    fun update(
-        wiFiData: WiFiData,
-        expandableListView: ExpandableListView?,
-    ) {
-        MainContext.INSTANCE.configuration.size = type(calculateChildType())
-        val settings = MainContext.INSTANCE.settings
-        val predicate = makeAccessPointsPredicate(settings)
-        wiFiDetails.clear()
-        wiFiDetails.addAll(wiFiData.wiFiDetails(predicate, settings.sortBy(), settings.groupBy()))
-        accessPointsAdapterGroup.update(wiFiDetails, expandableListView)
+class AccessPointsViewModel : ViewModel(), UpdateNotifier {
+    private val _wiFiDetails = MutableStateFlow<List<WiFiDetail>>(emptyList())
+    val wiFiDetails: StateFlow<List<WiFiDetail>> = _wiFiDetails.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _expandedGroups = MutableStateFlow<Set<String>>(emptySet())
+    val expandedGroups: StateFlow<Set<String>> = _expandedGroups.asStateFlow()
+
+    private var groupBy: GroupBy = GroupBy.NONE
+
+    init {
+        MainContext.INSTANCE.scannerService.register(this)
+        update(MainContext.INSTANCE.scannerService.wiFiData())
     }
 
-    fun parentsCount(): Int = wiFiDetails.size
+    override fun onCleared() {
+        MainContext.INSTANCE.scannerService.unregister(this)
+        super.onCleared()
+    }
 
-    fun parent(index: Int): WiFiDetail = wiFiDetails.getOrNull(index) ?: WiFiDetail.EMPTY
+    override fun update(wiFiData: WiFiData) {
+        MainContext.INSTANCE.configuration.size = type(calculateChildType())
 
-    fun childrenCount(index: Int): Int = wiFiDetails.getOrNull(index)?.children?.size ?: 0
+        val settings = MainContext.INSTANCE.settings
+        val predicate = makeAccessPointsPredicate(settings)
+        val currentGroupBy = settings.groupBy()
 
-    fun child(
-        indexParent: Int,
-        indexChild: Int,
-    ): WiFiDetail = wiFiDetails.getOrNull(indexParent)?.children?.getOrNull(indexChild) ?: WiFiDetail.EMPTY
+        if (currentGroupBy != groupBy) {
+            _expandedGroups.value = emptySet()
+            groupBy = currentGroupBy
+        }
 
-    fun onGroupCollapsed(groupPosition: Int) = accessPointsAdapterGroup.onGroupCollapsed(wiFiDetails, groupPosition)
+        val details = wiFiData.wiFiDetails(predicate, settings.sortBy(), settings.groupBy())
+        _wiFiDetails.value = details
 
-    fun onGroupExpanded(groupPosition: Int) = accessPointsAdapterGroup.onGroupExpanded(wiFiDetails, groupPosition)
+        _isRefreshing.value = false
+    }
+
+    fun refresh() {
+        _isRefreshing.value = true
+        MainContext.INSTANCE.scannerService.update()
+    }
+
+    fun toggleGroup(wiFiDetail: WiFiDetail) {
+        val group = groupBy.group(wiFiDetail)
+        val currentExpanded = _expandedGroups.value.toMutableSet()
+        if (currentExpanded.contains(group)) {
+            currentExpanded.remove(group)
+        } else {
+            currentExpanded.add(group)
+        }
+        _expandedGroups.value = currentExpanded
+    }
 
     private fun calculateChildType(): Int =
         runCatching {

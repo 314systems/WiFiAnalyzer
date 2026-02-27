@@ -45,14 +45,14 @@ import com.vrem.wifianalyzer.ui.theme.channel
 
 @Composable
 fun AccessPointRow(
-    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     isChild: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val rowContent = @Composable {
         Row(
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
+            modifier = modifier.padding(vertical = 8.dp, horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isChild) {
