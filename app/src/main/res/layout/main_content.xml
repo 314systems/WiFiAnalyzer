@@ -52,7 +52,6 @@
         android:id="@+id/nav_bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="@color/primary_material_dark"
         app:itemIconTint="@drawable/menu_selector"
         app:itemTextColor="@drawable/menu_selector"
