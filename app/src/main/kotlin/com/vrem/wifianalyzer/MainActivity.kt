@@ -25,10 +25,15 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.GravityCompat
 import com.google.android.material.navigation.NavigationView
+import com.vrem.util.SPACE_SEPARATOR
 import com.vrem.util.createContext
+import com.vrem.util.specialTrim
 import com.vrem.wifianalyzer.databinding.MainActivityBinding
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.navigation.NavigationMenuControl
@@ -37,6 +42,7 @@ import com.vrem.wifianalyzer.navigation.options.OptionMenu
 import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.accesspoint.ConnectionView
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
@@ -51,6 +57,8 @@ class MainActivity :
     internal lateinit var optionMenu: OptionMenu
     internal lateinit var connectionView: ConnectionView
     private lateinit var binding: MainActivityBinding
+
+    var showFilterDialog by mutableStateOf(false)
 
     override fun attachBaseContext(newBase: Context) =
         super.attachBaseContext(newBase.createContext(Settings(Repository(newBase)).languageLocale()))
@@ -78,6 +86,33 @@ class MainActivity :
                         onPermissionGranted = { update() },
                         onTerminateApp = { finish() }
                     )
+
+                    if (showFilterDialog) {
+                        FilterDialog(
+                            filtersAdapter = MainContext.INSTANCE.filtersAdapter,
+                            isAccessPoints = currentNavigationMenu() == NavigationMenu.ACCESS_POINTS,
+                            onApply = { ssid, bands, strengths, securities ->
+                                with(MainContext.INSTANCE.filtersAdapter) {
+                                    ssidAdapter().selections = ssid.specialTrim().split(String.SPACE_SEPARATOR).toSet()
+                                    wiFiBandAdapter().selections = bands
+                                    strengthAdapter().selections = strengths
+                                    securityAdapter().selections = securities
+                                    save()
+                                }
+                                update()
+                                showFilterDialog = false
+                            },
+                            onReset = {
+                                MainContext.INSTANCE.filtersAdapter.reset()
+                                update()
+                                showFilterDialog = false
+                            },
+                            onClose = {
+                                MainContext.INSTANCE.filtersAdapter.reload()
+                                showFilterDialog = false
+                            }
+                        )
+                    }
                 }
             }
         }

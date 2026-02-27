@@ -21,24 +21,33 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,6 +62,26 @@ import com.vrem.wifianalyzer.wifi.filter.adapter.FiltersAdapter
 import com.vrem.wifianalyzer.wifi.model.Security
 import com.vrem.wifianalyzer.wifi.model.Strength
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterDialog(
+    filtersAdapter: FiltersAdapter,
+    isAccessPoints: Boolean,
+    onApply: (String, Set<WiFiBand>, Set<Strength>, Set<Security>) -> Unit,
+    onReset: () -> Unit,
+    onClose: () -> Unit
+) {
+    BasicAlertDialog(onDismissRequest = onClose) {
+        FilterPopupContent(
+            filtersAdapter = filtersAdapter,
+            isAccessPoints = isAccessPoints,
+            onApply = onApply,
+            onReset = onReset,
+            onClose = onClose
+        )
+    }
+}
+
 /**
  * Main Composable for the Filter Popup, migrating from filter_popup.xml.
  */
@@ -60,6 +89,9 @@ import com.vrem.wifianalyzer.wifi.model.Strength
 fun FilterPopupContent(
     filtersAdapter: FiltersAdapter,
     isAccessPoints: Boolean,
+    onApply: (String, Set<WiFiBand>, Set<Strength>, Set<Security>) -> Unit,
+    onReset: () -> Unit,
+    onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var ssid by remember {
@@ -75,48 +107,84 @@ fun FilterPopupContent(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 6.dp
     ) {
         Column(
-            modifier = Modifier
-                .verticalScroll(scrollState)
-                .padding(16.dp),
+            modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SSIDFilterSection(
-                ssid = ssid,
-                onSsidChange = {
-                    ssid = it
-                    filtersAdapter.ssidAdapter().selections = it.specialTrim().split(String.SPACE_SEPARATOR).toSet()
-                }
-            )
-
-            if (isAccessPoints) {
-                WiFiBandFilterSection(
-                    selectedBands = selectedBands,
-                    onBandsChange = {
-                        selectedBands = it
-                        filtersAdapter.wiFiBandAdapter().selections = it
-                    }
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_filter_list),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.filter_title),
+                    style = MaterialTheme.typography.headlineSmall
                 )
             }
 
-            StrengthFilterSection(
-                selectedStrengths = selectedStrengths,
-                onStrengthsChange = {
-                    selectedStrengths = it
-                    filtersAdapter.strengthAdapter().selections = it
-                }
-            )
+            // Scrollable Content
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                SSIDFilterSection(
+                    ssid = ssid,
+                    onSsidChange = { ssid = it }
+                )
 
-            SecurityFilterSection(
-                selectedSecurities = selectedSecurities,
-                onSecuritiesChange = {
-                    selectedSecurities = it
-                    filtersAdapter.securityAdapter().selections = it
+                if (isAccessPoints) {
+                    WiFiBandFilterSection(
+                        selectedBands = selectedBands,
+                        onBandsChange = { selectedBands = it }
+                    )
                 }
-            )
+
+                StrengthFilterSection(
+                    selectedStrengths = selectedStrengths,
+                    onStrengthsChange = { selectedStrengths = it }
+                )
+
+                SecurityFilterSection(
+                    selectedSecurities = selectedSecurities,
+                    onSecuritiesChange = { selectedSecurities = it }
+                )
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            // Actions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedButton(onClick = onReset) {
+                    Text(stringResource(R.string.filter_reset))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onClose) {
+                        Text(stringResource(R.string.filter_close))
+                    }
+                    Button(onClick = {
+                        onApply(ssid, selectedBands, selectedStrengths, selectedSecurities)
+                    }) {
+                        Text(stringResource(R.string.filter_apply))
+                    }
+                }
+            }
         }
     }
 }
@@ -266,9 +334,6 @@ private fun SecurityFilterSection(
 @Composable
 fun FilterPopupContentPreview() {
     AppTheme {
-        // Preview might need a mock adapter or similar if we want to see it.
-        // For now, it's enough to check the layout with some dummy data if possible,
-        // but FiltersAdapter is not easily mocked here without more setup.
     }
 }
 

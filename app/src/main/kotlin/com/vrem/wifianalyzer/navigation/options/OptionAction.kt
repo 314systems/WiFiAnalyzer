@@ -20,13 +20,12 @@ package com.vrem.wifianalyzer.navigation.options
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
-import com.vrem.wifianalyzer.wifi.filter.Filter
 
 typealias Action = () -> Unit
 
 internal val noAction: Action = { }
 
-internal val filterAction: Action = { Filter.build().show() }
+internal val filterAction: Action = { MainContext.INSTANCE.mainActivity.showFilterDialog = true }
 
 internal val scannerAction: Action = { MainContext.INSTANCE.scannerService.toggle() }
 
