@@ -27,7 +27,6 @@ import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.wifi.model.WiFiAdditional
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
-import com.vrem.wifianalyzer.wifi.model.WiFiSecurity
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 
 class AccessPointDetail {
@@ -47,28 +46,6 @@ class AccessPointDetail {
         setViewVendorShort(view, wiFiDetail.wiFiAdditional)
         return view
     }
-
-    fun makeViewDetailed(wiFiDetail: WiFiDetail): View {
-        val view = MainContext.INSTANCE.layoutInflater.inflate(R.layout.access_point_view_popup, null)
-        setViewCompact(view, wiFiDetail, false)
-        setViewExtra(view, wiFiDetail)
-        setViewCapabilitiesLong(view, wiFiDetail.wiFiSecurity)
-        setViewSecurityTypes(view, wiFiDetail.wiFiSecurity)
-        setViewVendorLong(view, wiFiDetail.wiFiAdditional)
-        setViewWiFiBand(view, wiFiDetail.wiFiSignal)
-        setViewWiFiChannelPair(view, wiFiDetail.wiFiSignal)
-        setView80211mc(view, wiFiDetail.wiFiSignal)
-        setViewWiFiStandard(view, wiFiDetail.wiFiSignal)
-        setViewFastRoaming(view, wiFiDetail.wiFiSignal)
-        enableTextSelection(view)
-        return view
-    }
-
-    private fun enableTextSelection(view: View) =
-        view.findViewById<TextView>(R.id.ssid)?.let {
-            it.setTextIsSelectable(true)
-            view.findViewById<TextView>(R.id.vendorLong).setTextIsSelectable(true)
-        }
 
     private fun setViewCompact(
         view: View,
@@ -151,67 +128,6 @@ class AccessPointDetail {
         } else {
             it.visibility = View.VISIBLE
             it.text = wiFiAdditional.vendorName
-        }
-    }
-
-    private fun setViewCapabilitiesLong(
-        view: View,
-        wiFiSecurity: WiFiSecurity,
-    ) = view.findViewById<TextView>(R.id.capabilitiesLong)?.let {
-        it.text = wiFiSecurity.capabilities
-    }
-
-    private fun setViewSecurityTypes(
-        view: View,
-        wiFiSecurity: WiFiSecurity,
-    ) = view.findViewById<TextView>(R.id.securityTypes)?.let {
-        it.text = wiFiSecurity.wiFiSecurityTypesDisplay(view.context)
-    }
-
-    private fun setViewVendorLong(
-        view: View,
-        wiFiAdditional: WiFiAdditional,
-    ) = view.findViewById<TextView>(R.id.vendorLong)?.let {
-        if (wiFiAdditional.vendorName.isBlank()) {
-            it.visibility = View.GONE
-        } else {
-            it.visibility = View.VISIBLE
-            it.text = wiFiAdditional.vendorName
-        }
-    }
-
-    private fun setViewWiFiBand(
-        view: View,
-        wiFiSignal: WiFiSignal,
-    ) = view.findViewById<TextView>(R.id.wiFiBand)?.setText(wiFiSignal.wiFiBand.textResource)
-
-    private fun setViewFastRoaming(
-        view: View,
-        wiFiSignal: WiFiSignal,
-    ) = view.findViewById<TextView>(R.id.fastRoaming)?.let {
-        it.text = wiFiSignal.extra.fastRoamingDisplay(view.context)
-    }
-
-    private fun setViewWiFiStandard(
-        view: View,
-        wiFiSignal: WiFiSignal,
-    ) = view.findViewById<TextView>(R.id.wiFiStandardFull)?.setText(wiFiSignal.extra.wiFiStandard.fullResource)
-
-    private fun setView80211mc(
-        view: View,
-        wiFiSignal: WiFiSignal,
-    ) = view.findViewById<TextView>(R.id.flag80211mc)?.let {
-        it.visibility = if (wiFiSignal.extra.is80211mc) View.VISIBLE else View.GONE
-    }
-
-    private fun setViewWiFiChannelPair(
-        view: View,
-        wiFiSignal: WiFiSignal,
-    ) = with(wiFiSignal) {
-        view.findViewById<TextView>(R.id.channel_start).text = "${wiFiChannelStart.channel}"
-        view.findViewById<TextView>(R.id.channel_end).text = "${wiFiChannelEnd.channel}"
-        view.findViewById<TextView>(R.id.channel_width)?.let {
-            it.text = ContextCompat.getString(view.context, wiFiSignal.wiFiWidth.textResource)
         }
     }
 }

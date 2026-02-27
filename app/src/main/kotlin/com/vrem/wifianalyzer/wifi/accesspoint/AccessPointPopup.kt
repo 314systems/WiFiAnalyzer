@@ -17,16 +17,29 @@
  */
 package com.vrem.wifianalyzer.wifi.accesspoint
 
-import android.app.AlertDialog
 import android.view.View
+import androidx.appcompat.app.AlertDialog
+import androidx.compose.ui.platform.ComposeView
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 
 class AccessPointPopup {
-    fun show(view: View): AlertDialog {
-        val alertDialog: AlertDialog =
-            AlertDialog
+    fun show(
+        view: View,
+        wiFiDetail: WiFiDetail,
+    ): AlertDialog {
+        val composeView =
+            ComposeView(view.context).apply {
+                setContent {
+                    AppTheme {
+                        AccessPointViewPopup(wiFiDetail = wiFiDetail)
+                    }
+                }
+            }
+
+        val alertDialog = AlertDialog
                 .Builder(view.context)
-                .setView(view)
+                .setView(composeView)
                 .setPositiveButton(android.R.string.ok) { dialog, _ ->
                     dialog.cancel()
                 }.create()
@@ -39,7 +52,7 @@ class AccessPointPopup {
         wiFiDetail: WiFiDetail,
     ) {
         view.setOnClickListener {
-            runCatching { show(AccessPointDetail().makeViewDetailed(wiFiDetail)) }
+            runCatching { show(view, wiFiDetail) }
         }
     }
 }
