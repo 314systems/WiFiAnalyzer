@@ -24,6 +24,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.GravityCompat
@@ -97,14 +98,13 @@ class MainActivity :
         drawerNavigation.onConfigurationChanged(newConfig)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (!MainContext.INSTANCE.permissionService.granted(requestCode, grantResults)) {
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
             finish()
+        } else {
+            update()
         }
     }
 
@@ -188,7 +188,9 @@ class MainActivity :
             }
             MainContext.INSTANCE.scannerService.resume()
         } else {
-            MainContext.INSTANCE.permissionService.check()
+            MainContext.INSTANCE.permissionService.check { permission ->
+                requestPermissionLauncher.launch(permission)
+            }
         }
         updateActionBar()
     }

@@ -28,12 +28,8 @@ class PermissionService(
 
     fun locationEnabled(): Boolean = locationPermission.enabled()
 
-    fun check(): Unit = applicationPermission.check()
-
-    fun granted(
-        requestCode: Int,
-        grantResults: IntArray,
-    ): Boolean = applicationPermission.granted(requestCode, grantResults)
+    fun check(requestPermission: (String) -> Unit): Unit =
+        applicationPermission.check(requestPermission)
 
     fun permissionGranted(): Boolean = applicationPermission.granted()
 }

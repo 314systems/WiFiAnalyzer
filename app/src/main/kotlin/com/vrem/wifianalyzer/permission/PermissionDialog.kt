@@ -27,7 +27,7 @@ import com.vrem.wifianalyzer.databinding.InfoPermissionBinding
 class PermissionDialog(
     private val activity: Activity,
 ) {
-    fun show(): View {
+    fun show(requestPermission: () -> Unit): View {
         val binding = InfoPermissionBinding.inflate(activity.layoutInflater)
         binding.infoThrottling.throttling.visibility = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) View.VISIBLE else View.GONE
 
@@ -38,10 +38,7 @@ class PermissionDialog(
             .setIcon(R.drawable.ic_app)
             .setPositiveButton(android.R.string.ok) { dialog, _ ->
                 dialog.dismiss()
-                activity.requestPermissions(
-                    arrayOf(ApplicationPermission.PERMISSION),
-                    ApplicationPermission.REQUEST_CODE
-                )
+                requestPermission()
             }
             .setNegativeButton(android.R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
