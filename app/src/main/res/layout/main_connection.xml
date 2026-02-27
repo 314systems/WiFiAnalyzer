@@ -84,5 +84,8 @@
 
     <include layout="@layout/main_wifi_throttling" />
 
-    <include layout="@layout/main_warning" />
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/warning_compose_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </LinearLayout>
