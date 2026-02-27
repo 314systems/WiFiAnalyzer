@@ -71,12 +71,14 @@ class MainActivity :
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.permissionComposeView.setContent {
-            AppTheme {
-                PermissionHandler(
-                    onPermissionGranted = { update() },
-                    onTerminateApp = { finish() }
-                )
+        binding.permissionComposeView.apply {
+            setContent {
+                AppTheme {
+                    PermissionHandler(
+                        onPermissionGranted = { update() },
+                        onTerminateApp = { finish() }
+                    )
+                }
             }
         }
 

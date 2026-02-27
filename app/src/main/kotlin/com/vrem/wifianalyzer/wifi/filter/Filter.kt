@@ -17,48 +17,23 @@
  */
 package com.vrem.wifianalyzer.wifi.filter
 
-import android.app.AlertDialog
 import android.content.DialogInterface
+import androidx.appcompat.app.AlertDialog
+import androidx.compose.ui.platform.ComposeView
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.navigation.NavigationMenu
+import com.vrem.wifianalyzer.ui.filter.FilterPopupContent
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 
 class Filter(
     val alertDialog: AlertDialog?,
 ) {
-    private var ssidFilter: SSIDFilter? = null
-    internal var wiFiBandFilter: WiFiBandFilter? = null
-        private set
-    internal var strengthFilter: StrengthFilter? = null
-        private set
-    internal var securityFilter: SecurityFilter? = null
-        private set
-
     fun show() {
         if (alertDialog != null && !alertDialog.isShowing) {
             alertDialog.show()
-            wiFiBandFilter = addWiFiBandFilter(alertDialog)
-            ssidFilter = addSSIDFilter(alertDialog)
-            strengthFilter = addStrengthFilter(alertDialog)
-            securityFilter = addSecurityFilter(alertDialog)
         }
     }
-
-    private fun addSSIDFilter(alertDialog: AlertDialog): SSIDFilter =
-        SSIDFilter(MainContext.INSTANCE.filtersAdapter.ssidAdapter(), alertDialog)
-
-    private fun addWiFiBandFilter(alertDialog: AlertDialog): WiFiBandFilter? =
-        if (NavigationMenu.ACCESS_POINTS == MainContext.INSTANCE.mainActivity.currentNavigationMenu()) {
-            WiFiBandFilter(MainContext.INSTANCE.filtersAdapter.wiFiBandAdapter(), alertDialog)
-        } else {
-            null
-        }
-
-    private fun addStrengthFilter(alertDialog: AlertDialog): StrengthFilter =
-        StrengthFilter(MainContext.INSTANCE.filtersAdapter.strengthAdapter(), alertDialog)
-
-    private fun addSecurityFilter(alertDialog: AlertDialog): SecurityFilter =
-        SecurityFilter(MainContext.INSTANCE.filtersAdapter.securityAdapter(), alertDialog)
 
     private class Close : DialogInterface.OnClickListener {
         override fun onClick(
@@ -96,13 +71,23 @@ class Filter(
         fun build(): Filter = Filter(buildAlertDialog())
 
         private fun buildAlertDialog(): AlertDialog? {
-            if (MainContext.INSTANCE.mainActivity.isFinishing) {
+            val mainActivity = MainContext.INSTANCE.mainActivity
+            if (mainActivity.isFinishing) {
                 return null
             }
-            val view = MainContext.INSTANCE.layoutInflater.inflate(R.layout.filter_popup, null)
+            val composeView = ComposeView(mainActivity).apply {
+                setContent {
+                    AppTheme {
+                        FilterPopupContent(
+                            filtersAdapter = MainContext.INSTANCE.filtersAdapter,
+                            isAccessPoints = mainActivity.currentNavigationMenu() == NavigationMenu.ACCESS_POINTS
+                        )
+                    }
+                }
+            }
             return AlertDialog
-                .Builder(view.context)
-                .setView(view)
+                .Builder(mainActivity)
+                .setView(composeView)
                 .setTitle(R.string.filter_title)
                 .setIcon(R.drawable.ic_filter_list)
                 .setNegativeButton(R.string.filter_reset, Reset())
