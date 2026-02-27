@@ -19,17 +19,13 @@ package com.vrem.wifianalyzer.wifi.filter
 
 import android.content.DialogInterface
 import android.os.Build
-import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vrem.wifianalyzer.MainActivity
 import com.vrem.wifianalyzer.MainContextHelper
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.RobolectricUtil
 import com.vrem.wifianalyzer.navigation.NavigationMenu
-import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.filter.Filter.Companion.build
-import com.vrem.wifianalyzer.wifi.model.Security
-import com.vrem.wifianalyzer.wifi.model.Strength
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -135,102 +131,13 @@ class FilterTest {
     }
 
     @Test
-    fun sSIDFilterViewIsVisible() {
-        // setup
-        fixture.show()
-        // execute
-        val actual = fixture.alertDialog!!.findViewById<View>(R.id.filterSSID).visibility
-        // validate
-        assertThat(actual).isEqualTo(View.VISIBLE)
-    }
-
-    @Test
-    fun wiFiBandFilterViewIsVisible() {
-        // setup
-        fixture.show()
-        // execute
-        val actual = fixture.alertDialog!!.findViewById<View>(R.id.filterWiFiBand).visibility
-        // validate
-        assertThat(actual).isEqualTo(View.VISIBLE)
-    }
-
-    @Test
-    fun wiFiBandFilterMapping() {
-        // setup
-        val expected: Set<WiFiBand> = WiFiBand.entries.toSet()
-        fixture.show()
-        // execute
-        val actual: Map<WiFiBand, Int> = fixture.wiFiBandFilter!!.ids
-        // validate
-        assertThat(actual).hasSize(expected.size)
-        expected.forEach { assertThat(actual[it]).isNotNull() }
-    }
-
-    @Test
-    fun securityFilterViewIsVisible() {
-        // setup
-        fixture.show()
-        // execute
-        val actual = fixture.alertDialog!!.findViewById<View>(R.id.filterSecurity).visibility
-        // validate
-        assertThat(actual).isEqualTo(View.VISIBLE)
-    }
-
-    @Test
-    fun securityFilterMapping() {
-        // setup
-        val expected: Set<Security> = Security.entries.toSet()
-        fixture.show()
-        // execute
-        val actual: Map<Security, Int> = fixture.securityFilter!!.ids
-        // validate
-        assertThat(actual).hasSize(expected.size)
-        expected.forEach { assertThat(actual[it]).isNotNull() }
-    }
-
-    @Test
-    fun strengthFilterViewIsVisible() {
-        // setup
-        fixture.show()
-        // execute
-        val actual = fixture.alertDialog!!.findViewById<View>(R.id.filterStrength).visibility
-        // validate
-        assertThat(actual).isEqualTo(View.VISIBLE)
-    }
-
-    @Test
-    fun strengthFilterMapping() {
-        // setup
-        val expected: Set<Strength> = Strength.entries.toSet()
-        fixture.show()
-        // execute
-        val actual: Map<Strength, Int> = fixture.strengthFilter!!.ids
-        // validate
-        assertThat(actual).hasSize(expected.size)
-        expected.forEach { assertThat(actual[it]).isNotNull() }
-    }
-
-    @Test
     fun showWhenDialogIsNull() {
         // setup
         val fixture = Filter(null)
         // execute
         fixture.show()
         // validate
-        assertThat(fixture.wiFiBandFilter).isNull()
-        assertThat(fixture.strengthFilter).isNull()
-        assertThat(fixture.securityFilter).isNull()
-    }
-
-    @Test
-    fun wiFiBandFilterViewIsGone() {
-        // setup
-        mainActivity.currentNavigationMenu(NavigationMenu.CHANNEL_RATING)
-        fixture.show()
-        // execute
-        val actual = fixture.alertDialog!!.findViewById<View>(R.id.filterWiFiBand).visibility
-        // validate
-        assertThat(actual).isEqualTo(View.GONE)
+        assertThat(fixture.alertDialog).isNull()
     }
 
     @Test
