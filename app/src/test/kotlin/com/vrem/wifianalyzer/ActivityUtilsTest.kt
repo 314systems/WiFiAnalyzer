@@ -18,12 +18,10 @@
 package com.vrem.wifianalyzer
 
 import android.content.Intent
-import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.widget.Toolbar
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -50,22 +48,6 @@ class ActivityUtilsTest {
         verifyNoMoreInteractions(window)
         verifyNoMoreInteractions(settings)
         verifyNoMoreInteractions(intent)
-    }
-
-    @Test
-    fun setupToolbar() {
-        // setup
-        doReturn(toolbar).whenever(mainActivity).findViewById<View>(R.id.toolbar)
-        doReturn(actionBar).whenever(mainActivity).supportActionBar
-        // execute
-        val actual = mainActivity.setupToolbar()
-        // validate
-        assertThat(actual).isEqualTo(toolbar)
-        verify(mainActivity).findViewById<View>(R.id.toolbar)
-        verify(mainActivity).supportActionBar
-        verify(mainActivity).setSupportActionBar(toolbar)
-        verify(actionBar).setHomeButtonEnabled(true)
-        verify(actionBar).setDisplayHomeAsUpEnabled(true)
     }
 
     @Test

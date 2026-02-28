@@ -22,7 +22,6 @@ val navigationOptionAp =
         navigationOptionWiFiSwitchOff,
         navigationOptionScannerSwitchOn,
         navigationOptionFilterOn,
-        navigationOptionBottomNavOn,
     )
 
 val navigationOptionOff =
@@ -30,7 +29,6 @@ val navigationOptionOff =
         navigationOptionWiFiSwitchOff,
         navigationOptionScannerSwitchOff,
         navigationOptionFilterOff,
-        navigationOptionBottomNavOff,
     )
 
 val navigationOptionOther =
@@ -38,7 +36,6 @@ val navigationOptionOther =
         navigationOptionWiFiSwitchOn,
         navigationOptionScannerSwitchOn,
         navigationOptionFilterOn,
-        navigationOptionBottomNavOn,
     )
 
 val navigationOptionRating =
@@ -46,5 +43,4 @@ val navigationOptionRating =
         navigationOptionWiFiSwitchOn,
         navigationOptionScannerSwitchOn,
         navigationOptionFilterOff,
-        navigationOptionBottomNavOn,
     )

@@ -15,27 +15,46 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package com.vrem.wifianalyzer.wifi.accesspoint
+
+package com.vrem.wifianalyzer.ui.main
 
 import android.net.wifi.WifiInfo
-import android.view.View
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.ComposeView
-import com.vrem.wifianalyzer.MainActivity
+import androidx.lifecycle.ViewModel
 import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.ui.main.MainConnection
-import com.vrem.wifianalyzer.ui.main.MainConnectionState
-import com.vrem.wifianalyzer.ui.theme.AppTheme
+import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointViewCompact
+import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointViewComplete
+import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointViewData
+import com.vrem.wifianalyzer.wifi.accesspoint.ConnectionViewType
+import com.vrem.wifianalyzer.wifi.accesspoint.WarningView
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection
 import com.vrem.wifianalyzer.wifi.model.WiFiData
+import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-class ConnectionView(
-    private val mainActivity: MainActivity,
-    private val accessPointPopup: AccessPointPopup = AccessPointPopup(),
-) : UpdateNotifier {
+class MainConnectionViewModel : ViewModel(), UpdateNotifier {
+    private val _state = MutableStateFlow(MainConnectionState())
+    val state: StateFlow<MainConnectionState> = _state.asStateFlow()
+
+    private val _selectedWiFiDetail = MutableStateFlow<WiFiDetail?>(null)
+    val selectedWiFiDetail: StateFlow<WiFiDetail?> = _selectedWiFiDetail.asStateFlow()
+
+    init {
+        MainContext.INSTANCE.scannerService.register(this)
+    }
+
+    override fun onCleared() {
+        MainContext.INSTANCE.scannerService.unregister(this)
+        super.onCleared()
+    }
+
+    fun onDismissPopup() {
+        _selectedWiFiDetail.value = null
+    }
 
     override fun update(wiFiData: WiFiData) {
         val mainContext = MainContext.INSTANCE
@@ -52,17 +71,14 @@ class ConnectionView(
             ""
         }
 
-        val wifiSupportText = if (wiFiBand.available()) null else mainActivity.resources.getString(wiFiBand.textResource)
+        val wifiSupportText =
+            if (wiFiBand.available()) null else mainContext.resources.getString(wiFiBand.textResource)
 
         val connectionDetailContent: @Composable () -> Unit = {
-            val onClick = {
-                val view = mainActivity.findViewById<View>(R.id.main_connection_compose_view)
-                accessPointPopup.show(view, connection)
-            }
             if (connectionViewType == ConnectionViewType.COMPLETE) {
                 AccessPointViewComplete(
                     wiFiDetail = connection,
-                    onClick = onClick
+                    onClick = { _selectedWiFiDetail.value = connection }
                 )
             } else {
                 val signal = connection.wiFiSignal
@@ -78,13 +94,13 @@ class ConnectionView(
                 )
                 AccessPointViewCompact(
                     data = data,
-                    onClick = onClick
+                    onClick = { _selectedWiFiDetail.value = connection }
                 )
             }
         }
 
         val warningContent: @Composable () -> Unit = {
-            val registered = mainActivity.currentNavigationMenu().registered()
+            val registered = mainContext.mainActivity.currentNavigationMenu().registered()
             val isScanThrottleEnabled = mainContext.wiFiManagerWrapper.isScanThrottleEnabled()
             val wiFiDetailsEmpty = wiFiData.wiFiDetails.isEmpty()
             val isPermissionEnabled = mainContext.permissionService.enabled()
@@ -97,7 +113,7 @@ class ConnectionView(
             )
         }
 
-        val state = MainConnectionState(
+        _state.value = MainConnectionState(
             isConnectionVisible = isConnectionVisible,
             currentConnectionName = connection.wiFiIdentifier.title,
             linkSpeed = linkSpeed,
@@ -107,11 +123,5 @@ class ConnectionView(
             connectionDetailContent = connectionDetailContent,
             warningContent = warningContent
         )
-
-        mainActivity.findViewById<ComposeView>(R.id.main_connection_compose_view).setContent {
-            AppTheme {
-                MainConnection(state = state)
-            }
-        }
     }
 }

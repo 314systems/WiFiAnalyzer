@@ -37,4 +37,8 @@ interface NavigationMenuControl :
     fun <T : View?> findViewById(
         @IdRes id: Int,
     ): T
+
+    fun updateActionBar()
+
+    fun mainConnectionVisibility(visibility: Int)
 }
