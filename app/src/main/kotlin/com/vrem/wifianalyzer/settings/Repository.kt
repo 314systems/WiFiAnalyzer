@@ -43,6 +43,11 @@ class Repository(
         value: String,
     ): Unit = sharedPreferences().edit { putString(context.getString(key), value) }
 
+    fun save(
+        key: Int,
+        value: Boolean,
+    ): Unit = sharedPreferences().edit { putBoolean(context.getString(key), value) }
+
     fun stringAsInteger(
         key: Int,
         defaultValue: Int,
@@ -106,6 +111,8 @@ class Repository(
         key: Int,
         values: Set<String>,
     ): Unit = sharedPreferences().edit { putStringSet(context.getString(key), values) }
+
+    fun clear(): Unit = sharedPreferences().edit { clear() }
 
     fun defaultValues(
         context: Context,

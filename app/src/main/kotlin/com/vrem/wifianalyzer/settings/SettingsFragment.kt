@@ -18,33 +18,26 @@
 package com.vrem.wifianalyzer.settings
 
 import android.os.Bundle
-import androidx.core.content.edit
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
-import com.vrem.util.buildMinVersionQ
-import com.vrem.wifianalyzer.R
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 
-open class SettingsFragment : PreferenceFragmentCompat() {
-    override fun onCreatePreferences(
-        bundle: Bundle?,
-        rootKey: String?,
-    ) {
-        setupPreferences()
-    }
-
-    override fun onPreferenceTreeClick(preference: Preference): Boolean {
-        if (preference.key == getString(R.string.reset_key)) {
-            preferenceManager.sharedPreferences!!.edit { clear() }
-            preferenceScreen.removeAll()
-            setupPreferences()
-            return true
+class SettingsFragment : Fragment() {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View =
+        ComposeView(requireContext()).apply {
+            setContent {
+                AppTheme {
+                    val viewModel: SettingsViewModel = viewModel()
+                    SettingsScreen(viewModel = viewModel)
+                }
+            }
         }
-        return super.onPreferenceTreeClick(preference)
-    }
-
-    private fun setupPreferences() {
-        addPreferencesFromResource(R.xml.settings)
-        findPreference<Preference>(getString(R.string.wifi_off_on_exit_key))!!
-            .isVisible = !buildMinVersionQ()
-    }
 }
