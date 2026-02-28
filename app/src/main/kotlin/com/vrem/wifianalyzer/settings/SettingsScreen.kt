@@ -191,7 +191,7 @@ fun SettingsContent(
                 SettingsItem(
                     title = R.string.sort_by_title,
                     summary = stringArrayResource(R.array.sort_by_array)[sortBy.ordinal],
-                    icon = R.drawable.ic_sort,
+                    icon = R.drawable.sort_24px,
                     onClick = { dialogToShow = DialogType.SORT_BY }
                 )
                 SettingsItem(

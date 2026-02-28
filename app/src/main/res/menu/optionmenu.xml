@@ -41,13 +41,13 @@
 
     <item
         android:id="@+id/action_filter"
-        android:icon="@drawable/ic_filter_list"
+        android:icon="@drawable/filter_list_24px"
         android:title="@string/filter_title"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_scanner"
-        android:icon="@drawable/ic_pause"
+        android:icon="@drawable/pause_24px"
         android:title="@string/scanner_pause"
         app:showAsAction="ifRoom" />
 

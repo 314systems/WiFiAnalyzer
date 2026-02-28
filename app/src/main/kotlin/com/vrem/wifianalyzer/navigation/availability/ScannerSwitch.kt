@@ -32,10 +32,10 @@ internal val navigationOptionScannerSwitchOn: NavigationOption = {
         menuItem.isVisible = true
         if (MainContext.INSTANCE.scannerService.running()) {
             menuItem.setTitle(R.string.scanner_pause)
-            menuItem.setIcon(R.drawable.ic_pause)
+            menuItem.setIcon(R.drawable.pause_24px)
         } else {
             menuItem.setTitle(R.string.scanner_play)
-            menuItem.setIcon(R.drawable.ic_play_arrow)
+            menuItem.setIcon(R.drawable.play_arrow_24px)
         }
     }
 }

@@ -19,25 +19,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_bottom_access_points"
-        android:icon="@drawable/ic_network_wifi"
+        android:icon="@drawable/wifi_24px"
         android:checkable="true"
         android:title="@string/action_access_points" />
 
     <item
         android:id="@+id/nav_bottom_channel_rating"
-        android:icon="@drawable/ic_wifi_tethering"
+        android:icon="@drawable/wifi_tethering_24px"
         android:checkable="true"
         android:title="@string/action_channel_rating" />
 
     <item
         android:id="@+id/nav_bottom_channel_graph"
-        android:icon="@drawable/ic_insert_chart"
+        android:icon="@drawable/insert_chart_24px"
         android:checkable="true"
         android:title="@string/action_channel_graph" />
 
     <item
         android:id="@+id/nav_bottom_time_graph"
-        android:icon="@drawable/ic_show_chart"
+        android:icon="@drawable/show_chart_24px"
         android:checkable="true"
         android:title="@string/action_time_graph" />
 </menu>
