@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
 package com.vrem.wifianalyzer.about
 
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -40,17 +40,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 
 data class AboutUiState(
     val packageName: String,
@@ -123,7 +123,6 @@ private fun AboutSectionCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontStyle = FontStyle.Italic,
                 color = MaterialTheme.colorScheme.primary
             )
             HorizontalDivider(thickness = 0.5.dp)
@@ -139,19 +138,19 @@ private fun AboutHeader(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
             painter = painterResource(R.drawable.ic_app),
-            contentDescription = stringResource(R.string.app_full_name),
+            contentDescription = stringResource(R.string.app_name),
             modifier = Modifier.size(80.dp),
         )
         Column(
-            modifier = Modifier.padding(start = 16.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text = stringResource(R.string.app_full_name),
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -193,48 +192,49 @@ private fun AboutDeviceInfo(
         )
         WiFiStateItem(
             textResId = if (uiState.wiFiThrottlingEnabled) R.string.wifi_throttling_on else R.string.wifi_throttling_off,
-            iconResId = if (uiState.wiFiThrottlingEnabled) R.drawable.ic_close else R.drawable.ic_check,
-            iconColor = if (uiState.wiFiThrottlingEnabled) MaterialTheme.colorScheme.error else Color(0xFF4CAF50),
+            isSuccess = !uiState.wiFiThrottlingEnabled,
+            isError = uiState.wiFiThrottlingEnabled,
         )
-        WiFiStateItem(
-            textResId = R.string.wifi_band_2ghz,
-            iconResId = R.drawable.ic_check,
-            iconColor = Color(0xFF4CAF50),
-        )
-        WiFiStateItem(
-            textResId = R.string.wifi_band_5ghz,
-            iconResId = if (uiState.is5GHzBandSupported) R.drawable.ic_check else R.drawable.ic_close,
-            iconColor = if (uiState.is5GHzBandSupported) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
-        )
-        WiFiStateItem(
-            textResId = R.string.wifi_band_6ghz,
-            iconResId = if (uiState.is6GHzBandSupported) R.drawable.ic_check else R.drawable.ic_close,
-            iconColor = if (uiState.is6GHzBandSupported) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
-        )
+        listOf(
+            R.string.wifi_band_2ghz to true,
+            R.string.wifi_band_5ghz to uiState.is5GHzBandSupported,
+            R.string.wifi_band_6ghz to uiState.is6GHzBandSupported
+        ).forEach { (textResId, isSupported) ->
+            WiFiStateItem(
+                textResId = textResId,
+                isSuccess = isSupported
+            )
+        }
     }
 }
 
 @Composable
 private fun WiFiStateItem(
     @StringRes textResId: Int,
-    @DrawableRes iconResId: Int,
-    iconColor: Color,
-    modifier: Modifier = Modifier
+    isSuccess: Boolean,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
 ) {
     Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(vertical = 2.dp)
     ) {
+        val color = when {
+            isSuccess -> MaterialTheme.colorScheme.primary
+            isError -> MaterialTheme.colorScheme.error
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
         Icon(
-            painter = painterResource(iconResId),
+            painter = painterResource(if (isSuccess) R.drawable.check_24px else R.drawable.close_24px),
             contentDescription = null,
-            tint = iconColor,
+            tint = color,
             modifier = Modifier.size(20.dp),
         )
         Text(
             text = stringResource(textResId),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = 12.dp),
+            color = if (isSuccess || isError) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -378,7 +378,8 @@ private fun ClickableUrlText(
     )
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES, name = "Dark Mode")
+@Preview(showBackground = true, name = "Light Mode")
 @Composable
 private fun AboutScreenPreview() {
     val uiState = AboutUiState(
@@ -388,9 +389,9 @@ private fun AboutScreenPreview() {
         deviceInfo = "Pixel 7 Pro (Android 14)",
         wiFiThrottlingEnabled = false,
         is5GHzBandSupported = true,
-        is6GHzBandSupported = true
+        is6GHzBandSupported = false
     )
-    MaterialTheme {
+    AppTheme {
         AboutScreen(
             uiState = uiState,
             onLicenseClick = {},
