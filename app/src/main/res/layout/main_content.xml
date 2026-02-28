@@ -22,9 +22,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <include
-        android:id="@+id/main_toolbar"
-        layout="@layout/main_toolbar" />
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/toolbar_compose_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/main_connection_compose_view"

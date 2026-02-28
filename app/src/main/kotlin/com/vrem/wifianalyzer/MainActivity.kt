@@ -44,6 +44,7 @@ import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.main.MainBottomNavigation
+import com.vrem.wifianalyzer.ui.main.MainTopAppBar
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.accesspoint.ConnectionView
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
@@ -60,6 +61,7 @@ class MainActivity :
     private lateinit var binding: MainActivityBinding
 
     var showFilterDialog by mutableStateOf(false)
+    var isScannerRunning by mutableStateOf(false)
 
     override fun attachBaseContext(newBase: Context) =
         super.attachBaseContext(newBase.createContext(Settings(Repository(newBase)).languageLocale()))
@@ -123,12 +125,26 @@ class MainActivity :
 
         keepScreenOn()
 
-        val toolbar = setupToolbar()
-        drawerNavigation = DrawerNavigation(this, toolbar)
+        drawerNavigation = DrawerNavigation(this)
         drawerNavigation.create()
 
         navigationMenuController = NavigationMenuController(this)
         navigationMenuController.currentNavigationMenu(settings.selectedMenu())
+
+        binding.mainContent.toolbarComposeView.setContent {
+            AppTheme {
+                MainTopAppBar(
+                    currentMenu = navigationMenuController.selectedMenu,
+                    isScannerRunning = isScannerRunning,
+                    onNavigationClick = { drawerNavigation.toggle() },
+                    onScannerClick = {
+                        MainContext.INSTANCE.scannerService.toggle()
+                        update()
+                    },
+                    onFilterClick = { showFilterDialog = true }
+                )
+            }
+        }
 
         binding.mainContent.navBottomComposeView.setContent {
             AppTheme {
@@ -185,7 +201,9 @@ class MainActivity :
     }
 
     fun update() {
-        MainContext.INSTANCE.scannerService.update()
+        val scannerService = MainContext.INSTANCE.scannerService
+        scannerService.update()
+        isScannerRunning = scannerService.running()
         updateActionBar()
     }
 
@@ -209,7 +227,7 @@ class MainActivity :
         val scannerService: ScannerService = MainContext.INSTANCE.scannerService
         scannerService.pause()
         scannerService.unregister(connectionView)
-        updateActionBar()
+        update()
         super.onPause()
     }
 
@@ -219,19 +237,19 @@ class MainActivity :
         if (MainContext.INSTANCE.permissionService.permissionGranted()) {
             scannerService.resume()
         }
-        updateActionBar()
+        update()
         scannerService.register(connectionView)
     }
 
     public override fun onStop() {
         MainContext.INSTANCE.scannerService.stop()
-        updateActionBar()
+        update()
         super.onStop()
     }
 
     public override fun onStart() {
         super.onStart()
-        updateActionBar()
+        update()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

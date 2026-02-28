@@ -19,12 +19,11 @@ package com.vrem.wifianalyzer
 
 import android.content.res.Configuration
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 
 class DrawerNavigation(
     private val mainActivity: MainActivity,
-    private val toolbar: Toolbar,
 ) {
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
 
@@ -34,17 +33,22 @@ class DrawerNavigation(
 
     fun create() {
         val drawer = mainActivity.findViewById<DrawerLayout>(R.id.drawer_layout)
-        actionBarDrawerToggle = createDrawerToggle(drawer)
+        actionBarDrawerToggle = ActionBarDrawerToggle(
+            mainActivity,
+            drawer,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close,
+        )
         drawer.addDrawerListener(actionBarDrawerToggle)
         syncState()
     }
 
-    fun createDrawerToggle(drawer: DrawerLayout): ActionBarDrawerToggle =
-        ActionBarDrawerToggle(
-            mainActivity,
-            drawer,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close,
-        )
+    fun toggle() {
+        val drawer = mainActivity.findViewById<DrawerLayout>(R.id.drawer_layout)
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START)
+        } else {
+            drawer.openDrawer(GravityCompat.START)
+        }
+    }
 }
