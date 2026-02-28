@@ -22,24 +22,18 @@ import com.jjoe64.graphview.Viewport
 import com.vrem.util.EMPTY
 import com.vrem.wifianalyzer.wifi.graphutils.MAX_Y
 import com.vrem.wifianalyzer.wifi.graphutils.MIN_Y
+import kotlin.math.roundToInt
 
 internal class TimeAxisLabel : LabelFormatter {
     override fun formatLabel(
         value: Double,
         isValueX: Boolean,
     ): String {
-        val valueAsInt = (value + if (value < 0) -0.5 else 0.5).toInt()
-        return when {
-            isValueX -> {
-                if (valueAsInt > 0 && valueAsInt % 2 == 0) {
-                    valueAsInt.toString()
-                } else {
-                    String.EMPTY
-                }
-            }
-
-            valueAsInt in (MIN_Y + 1)..MAX_Y -> valueAsInt.toString()
-            else -> String.EMPTY
+        val intValue = value.roundToInt()
+        return if (isValueX) {
+            if (intValue > 0 && intValue % 2 == 0) "$intValue" else String.EMPTY
+        } else {
+            if (intValue in (MIN_Y + 1)..MAX_Y) "$intValue" else String.EMPTY
         }
     }
 

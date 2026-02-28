@@ -37,22 +37,27 @@ internal fun makeGraphView(
     mainContext: MainContext,
     graphMaximumY: Int,
     themeStyle: ThemeStyle,
-): GraphView =
-    GraphViewBuilder(NUM_X_TIME, graphMaximumY, themeStyle, false)
+): GraphView {
+    val resources = mainContext.resources
+    return GraphViewBuilder(NUM_X_TIME, graphMaximumY, themeStyle, false)
         .setLabelFormatter(TimeAxisLabel())
-        .setVerticalTitle(mainContext.resources.getString(R.string.graph_axis_y))
-        .setHorizontalTitle(mainContext.resources.getString(R.string.graph_time_axis_x))
+        .setVerticalTitle(resources.getString(R.string.graph_axis_y))
+        .setHorizontalTitle(resources.getString(R.string.graph_time_axis_x))
         .build(mainContext.context, false)
+}
 
 internal fun makeGraphViewWrapper(): GraphViewWrapper {
-    val settings = MainContext.INSTANCE.settings
+    val mainContext = MainContext.INSTANCE
+    val settings = mainContext.settings
     val themeStyle = settings.themeStyle()
-    val configuration = MainContext.INSTANCE.configuration
-    val graphView = makeGraphView(MainContext.INSTANCE, settings.graphMaximumY(), themeStyle)
+    val graphView = makeGraphView(mainContext, settings.graphMaximumY(), themeStyle)
     val graphViewWrapper = GraphViewWrapper(graphView, settings.timeGraphLegend(), themeStyle)
-    configuration.size = graphViewWrapper.size(graphViewWrapper.calculateGraphType())
-    graphViewWrapper.setViewport()
-    return graphViewWrapper
+
+    mainContext.configuration.size = graphViewWrapper.size(graphViewWrapper.calculateGraphType())
+
+    return graphViewWrapper.apply {
+        setViewport()
+    }
 }
 
 internal class TimeGraphView(
@@ -61,17 +66,21 @@ internal class TimeGraphView(
     private val graphViewWrapper: GraphViewWrapper = makeGraphViewWrapper(),
 ) : GraphViewNotifier {
     override fun update(wiFiData: WiFiData) {
-        val predicate = predicate(MainContext.INSTANCE.settings)
-        val wiFiDetails = wiFiData.wiFiDetails(predicate, MainContext.INSTANCE.settings.sortBy())
-        val newSeries =
-            dataManager.addSeriesData(
-                graphViewWrapper,
-                wiFiDetails,
-                MainContext.INSTANCE.settings.graphMaximumY(),
-            )
-        graphViewWrapper.removeSeries(newSeries)
-        graphViewWrapper.updateLegend(MainContext.INSTANCE.settings.timeGraphLegend())
-        graphViewWrapper.visibility(if (selected()) View.VISIBLE else View.GONE)
+        val settings = MainContext.INSTANCE.settings
+        val predicate = predicate(settings)
+        val wiFiDetails = wiFiData.wiFiDetails(predicate, settings.sortBy())
+
+        val newSeries = dataManager.addSeriesData(
+            graphViewWrapper,
+            wiFiDetails,
+            settings.graphMaximumY(),
+        )
+
+        graphViewWrapper.apply {
+            removeSeries(newSeries)
+            updateLegend(settings.timeGraphLegend())
+            visibility(if (selected()) View.VISIBLE else View.GONE)
+        }
     }
 
     fun predicate(settings: Settings): Predicate = makeOtherPredicate(settings)
