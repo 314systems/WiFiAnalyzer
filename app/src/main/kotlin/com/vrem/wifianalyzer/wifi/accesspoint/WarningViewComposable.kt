@@ -112,7 +112,7 @@ private fun ThrottlingOnWarning(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.Center
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_close),
+            painter = painterResource(id = R.drawable.close_24px),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(18.dp)

@@ -122,7 +122,7 @@ fun FilterPopupContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_filter_list),
+                    painter = painterResource(id = R.drawable.filter_list_24px),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)

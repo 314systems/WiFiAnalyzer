@@ -42,11 +42,11 @@ fun MainBottomNavigation(
                 onClick = { onMenuSelected(menu) },
                 icon = {
                     val iconRes = when (menu) {
-                        NavigationMenu.ACCESS_POINTS -> R.drawable.ic_network_wifi
-                        NavigationMenu.CHANNEL_RATING -> R.drawable.ic_wifi_tethering
-                        NavigationMenu.CHANNEL_GRAPH -> R.drawable.ic_insert_chart
-                        NavigationMenu.TIME_GRAPH -> R.drawable.ic_show_chart
-                        else -> R.drawable.ic_network_wifi
+                        NavigationMenu.ACCESS_POINTS -> R.drawable.wifi_24px
+                        NavigationMenu.CHANNEL_RATING -> R.drawable.wifi_tethering_24px
+                        NavigationMenu.CHANNEL_GRAPH -> R.drawable.insert_chart_24px
+                        NavigationMenu.TIME_GRAPH -> R.drawable.show_chart_24px
+                        else -> R.drawable.wifi_24px
                     }
                     Icon(
                         painter = painterResource(id = iconRes),
