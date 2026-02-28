@@ -22,12 +22,14 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import com.vrem.wifianalyzer.R
 
 class Repository(
     private val context: Context,
 ) {
-    fun initializeDefaultValues(): Unit = defaultValues(context, R.xml.settings, false)
+    fun initializeDefaultValues() {
+        // XML based default values are no longer used. 
+        // Default values should be handled by the Settings class or ViewModel.
+    }
 
     fun registerOnSharedPreferenceChangeListener(
         onSharedPreferenceChangeListener: OnSharedPreferenceChangeListener,
@@ -113,12 +115,6 @@ class Repository(
     ): Unit = sharedPreferences().edit { putStringSet(context.getString(key), values) }
 
     fun clear(): Unit = sharedPreferences().edit { clear() }
-
-    fun defaultValues(
-        context: Context,
-        resId: Int,
-        readAgain: Boolean,
-    ): Unit = PreferenceManager.setDefaultValues(context, resId, readAgain)
 
     fun defaultSharedPreferences(context: Context): SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(context)

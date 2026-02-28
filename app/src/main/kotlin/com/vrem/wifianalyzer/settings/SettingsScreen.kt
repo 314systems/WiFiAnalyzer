@@ -17,7 +17,6 @@
  */
 package com.vrem.wifianalyzer.settings
 
-import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,6 +56,10 @@ import com.vrem.wifianalyzer.wifi.model.GroupBy
 import com.vrem.wifianalyzer.wifi.model.SortBy
 import java.util.Locale
 
+private enum class DialogType {
+    NONE, SCAN_SPEED, SORT_BY, GROUP_BY, CONNECTION_VIEW, AP_VIEW, THEME, GRAPH_Y, CHANNEL_LEGEND, TIME_LEGEND, COUNTRY, LANGUAGE
+}
+
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val scanSpeed by viewModel.scanSpeed.collectAsStateWithLifecycle()
@@ -90,23 +93,43 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         languageLocale = languageLocale,
         cacheOff = cacheOff,
         showWiFiOffOnExit = viewModel.showWiFiOffOnExit,
-        onSetScanSpeed = viewModel::setScanSpeed,
-        onSetSortBy = viewModel::setSortBy,
-        onSetGroupBy = viewModel::setGroupBy,
-        onSetAccessPointView = viewModel::setAccessPointView,
-        onSetConnectionViewType = viewModel::setConnectionViewType,
-        onSetGraphMaximumY = viewModel::setGraphMaximumY,
-        onSetChannelGraphLegend = viewModel::setChannelGraphLegend,
-        onSetTimeGraphLegend = viewModel::setTimeGraphLegend,
-        onSetThemeStyle = viewModel::setThemeStyle,
-        onSetKeepScreenOn = viewModel::setKeepScreenOn,
-        onSetWiFiOffOnExit = viewModel::setWiFiOffOnExit,
-        onSetCountryCode = viewModel::setCountryCode,
-        onSetLanguage = viewModel::setLanguage,
-        onSetCacheOff = viewModel::setCacheOff,
-        onReset = viewModel::reset
+        actions = SettingsActions(
+            onSetScanSpeed = viewModel::setScanSpeed,
+            onSetSortBy = viewModel::setSortBy,
+            onSetGroupBy = viewModel::setGroupBy,
+            onSetAccessPointView = viewModel::setAccessPointView,
+            onSetConnectionViewType = viewModel::setConnectionViewType,
+            onSetGraphMaximumY = viewModel::setGraphMaximumY,
+            onSetChannelGraphLegend = viewModel::setChannelGraphLegend,
+            onSetTimeGraphLegend = viewModel::setTimeGraphLegend,
+            onSetThemeStyle = viewModel::setThemeStyle,
+            onSetKeepScreenOn = viewModel::setKeepScreenOn,
+            onSetWiFiOffOnExit = viewModel::setWiFiOffOnExit,
+            onSetCountryCode = viewModel::setCountryCode,
+            onSetLanguage = viewModel::setLanguage,
+            onSetCacheOff = viewModel::setCacheOff,
+            onReset = viewModel::reset
+        )
     )
 }
+
+data class SettingsActions(
+    val onSetScanSpeed: (Int) -> Unit,
+    val onSetSortBy: (SortBy) -> Unit,
+    val onSetGroupBy: (GroupBy) -> Unit,
+    val onSetAccessPointView: (AccessPointViewType) -> Unit,
+    val onSetConnectionViewType: (ConnectionViewType) -> Unit,
+    val onSetGraphMaximumY: (Int) -> Unit,
+    val onSetChannelGraphLegend: (GraphLegend) -> Unit,
+    val onSetTimeGraphLegend: (GraphLegend) -> Unit,
+    val onSetThemeStyle: (ThemeStyle) -> Unit,
+    val onSetKeepScreenOn: (Boolean) -> Unit,
+    val onSetWiFiOffOnExit: (Boolean) -> Unit,
+    val onSetCountryCode: (String) -> Unit,
+    val onSetLanguage: (String) -> Unit,
+    val onSetCacheOff: (Boolean) -> Unit,
+    val onReset: () -> Unit
+)
 
 @Composable
 fun SettingsContent(
@@ -125,195 +148,28 @@ fun SettingsContent(
     languageLocale: String,
     cacheOff: Boolean,
     showWiFiOffOnExit: Boolean,
-    onSetScanSpeed: (Int) -> Unit,
-    onSetSortBy: (SortBy) -> Unit,
-    onSetGroupBy: (GroupBy) -> Unit,
-    onSetAccessPointView: (AccessPointViewType) -> Unit,
-    onSetConnectionViewType: (ConnectionViewType) -> Unit,
-    onSetGraphMaximumY: (Int) -> Unit,
-    onSetChannelGraphLegend: (GraphLegend) -> Unit,
-    onSetTimeGraphLegend: (GraphLegend) -> Unit,
-    onSetThemeStyle: (ThemeStyle) -> Unit,
-    onSetKeepScreenOn: (Boolean) -> Unit,
-    onSetWiFiOffOnExit: (Boolean) -> Unit,
-    onSetCountryCode: (String) -> Unit,
-    onSetLanguage: (String) -> Unit,
-    onSetCacheOff: (Boolean) -> Unit,
-    onReset: () -> Unit
+    actions: SettingsActions
 ) {
-    var showScanSpeedDialog by remember { mutableStateOf(false) }
-    var showSortByDialog by remember { mutableStateOf(false) }
-    var showGroupByDialog by remember { mutableStateOf(false) }
-    var showConnectionViewDialog by remember { mutableStateOf(false) }
-    var showApViewDialog by remember { mutableStateOf(false) }
-    var showThemeDialog by remember { mutableStateOf(false) }
-    var showGraphYDialog by remember { mutableStateOf(false) }
-    var showChannelLegendDialog by remember { mutableStateOf(false) }
-    var showTimeLegendDialog by remember { mutableStateOf(false) }
-    var showCountryDialog by remember { mutableStateOf(false) }
-    var showLanguageDialog by remember { mutableStateOf(false) }
-
+    var dialogToShow by remember { mutableStateOf(DialogType.NONE) }
     val currentLocale = remember(languageLocale) { Locale.forLanguageTag(languageLocale) }
 
-    if (showScanSpeedDialog) {
-        ListPreferenceDialog(
-            title = stringResource(R.string.scan_speed_title),
-            entries = stringArrayResource(R.array.scan_speed_array).toList(),
-            entryValues = stringArrayResource(R.array.scan_speed_array).toList(),
-            selectedValue = scanSpeed.toString(),
-            onValueSelected = {
-                onSetScanSpeed(it.toInt())
-                showScanSpeedDialog = false
-            },
-            onDismiss = { showScanSpeedDialog = false }
-        )
-    }
-
-    if (showSortByDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.sort_by_title),
-            entries = stringArrayResource(R.array.sort_by_array).toList(),
-            values = SortBy.entries,
-            selectedValue = sortBy,
-            onValueSelected = {
-                onSetSortBy(it)
-                showSortByDialog = false
-            },
-            onDismiss = { showSortByDialog = false }
-        )
-    }
-
-    if (showGroupByDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.group_by_title),
-            entries = stringArrayResource(R.array.group_by_array).toList(),
-            values = GroupBy.entries,
-            selectedValue = groupBy,
-            onValueSelected = {
-                onSetGroupBy(it)
-                showGroupByDialog = false
-            },
-            onDismiss = { showGroupByDialog = false }
-        )
-    }
-
-    if (showConnectionViewDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.connection_view_title),
-            entries = stringArrayResource(R.array.connection_view_array).toList(),
-            values = ConnectionViewType.entries,
-            selectedValue = connectionViewType,
-            onValueSelected = {
-                onSetConnectionViewType(it)
-                showConnectionViewDialog = false
-            },
-            onDismiss = { showConnectionViewDialog = false }
-        )
-    }
-
-    if (showApViewDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.ap_view_title),
-            entries = stringArrayResource(R.array.ap_view_array).toList(),
-            values = AccessPointViewType.entries,
-            selectedValue = accessPointView,
-            onValueSelected = {
-                onSetAccessPointView(it)
-                showApViewDialog = false
-            },
-            onDismiss = { showApViewDialog = false }
-        )
-    }
-
-    if (showThemeDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.theme_title),
-            entries = stringArrayResource(R.array.theme_array).toList(),
-            values = ThemeStyle.entries,
-            selectedValue = themeStyle,
-            onValueSelected = {
-                onSetThemeStyle(it)
-                showThemeDialog = false
-            },
-            onDismiss = { showThemeDialog = false }
-        )
-    }
-
-    if (showGraphYDialog) {
-        ListPreferenceDialog(
-            title = stringResource(R.string.graph_maximum_y_title),
-            entries = stringArrayResource(R.array.graph_maximum_y_array).toList(),
-            entryValues = stringArrayResource(R.array.graph_maximum_y_index_array).toList(),
-            selectedValue = (graphMaximumY / -10).toString(),
-            onValueSelected = {
-                onSetGraphMaximumY(it.toInt())
-                showGraphYDialog = false
-            },
-            onDismiss = { showGraphYDialog = false }
-        )
-    }
-
-    if (showChannelLegendDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.channel_graph_legend_title),
-            entries = stringArrayResource(R.array.graph_legend_array).toList(),
-            values = GraphLegend.entries,
-            selectedValue = channelGraphLegend,
-            onValueSelected = {
-                onSetChannelGraphLegend(it)
-                showChannelLegendDialog = false
-            },
-            onDismiss = { showChannelLegendDialog = false }
-        )
-    }
-
-    if (showTimeLegendDialog) {
-        EnumPreferenceDialog(
-            title = stringResource(R.string.time_graph_legend_title),
-            entries = stringArrayResource(R.array.graph_legend_array).toList(),
-            values = GraphLegend.entries,
-            selectedValue = timeGraphLegend,
-            onValueSelected = {
-                onSetTimeGraphLegend(it)
-                showTimeLegendDialog = false
-            },
-            onDismiss = { showTimeLegendDialog = false }
-        )
-    }
-
-    if (showCountryDialog) {
-        val countries = WiFiChannelCountry.findAll()
-        ListPreferenceDialog(
-            title = stringResource(R.string.country_code_title),
-            entries = countries.map { it.countryName(currentLocale) },
-            entryValues = countries.map { it.countryCode },
-            selectedValue = countryCode,
-            onValueSelected = {
-                onSetCountryCode(it)
-                showCountryDialog = false
-            },
-            onDismiss = { showCountryDialog = false }
-        )
-    }
-
-    if (showLanguageDialog) {
-        val languages = supportedLanguages()
-        ListPreferenceDialog(
-            title = stringResource(R.string.language_title),
-            entries = languages.map {
-                it.getDisplayName(it).replaceFirstChar { char ->
-                    if (char.isLowerCase()) char.titlecase(currentLocale) else char.toString()
-                }
-            },
-            entryValues = languages.map { toLanguageTag(it) },
-            selectedValue = languageLocale,
-            onValueSelected = {
-                onSetLanguage(it)
-                showLanguageDialog = false
-            },
-            onDismiss = { showLanguageDialog = false }
-        )
-    }
+    SettingsDialogs(
+        dialogType = dialogToShow,
+        scanSpeed = scanSpeed,
+        sortBy = sortBy,
+        groupBy = groupBy,
+        connectionViewType = connectionViewType,
+        accessPointView = accessPointView,
+        themeStyle = themeStyle,
+        graphMaximumY = graphMaximumY,
+        channelGraphLegend = channelGraphLegend,
+        timeGraphLegend = timeGraphLegend,
+        countryCode = countryCode,
+        languageLocale = languageLocale,
+        currentLocale = currentLocale,
+        onDismiss = { dialogToShow = DialogType.NONE },
+        actions = actions
+    )
 
     Scaffold { padding ->
         Column(
@@ -322,125 +178,274 @@ fun SettingsContent(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            PreferenceCategory(title = stringResource(R.string.scan_speed_title))
-            ListPreference(
-                title = stringResource(R.string.scan_speed_title),
-                summary = scanSpeed.toString(),
-                icon = painterResource(R.drawable.ic_fast_forward),
-                onClick = { showScanSpeedDialog = true }
-            )
-
-            HorizontalDivider()
-            PreferenceCategory(title = stringResource(R.string.sort_by_title))
-            ListPreference(
-                title = stringResource(R.string.sort_by_title),
-                summary = stringArrayResource(R.array.sort_by_array)[sortBy.ordinal],
-                icon = painterResource(R.drawable.ic_sort),
-                onClick = { showSortByDialog = true }
-            )
-            ListPreference(
-                title = stringResource(R.string.group_by_title),
-                summary = stringArrayResource(R.array.group_by_array)[groupBy.ordinal],
-                icon = painterResource(R.drawable.group_24px),
-                onClick = { showGroupByDialog = true }
-            )
-
-            HorizontalDivider()
-            PreferenceCategory(title = stringResource(R.string.connection_view_title))
-            ListPreference(
-                title = stringResource(R.string.connection_view_title),
-                summary = stringArrayResource(R.array.connection_view_array)[connectionViewType.ordinal],
-                icon = painterResource(R.drawable.view_carousel_24px),
-                onClick = { showConnectionViewDialog = true }
-            )
-            ListPreference(
-                title = stringResource(R.string.ap_view_title),
-                summary = stringArrayResource(R.array.ap_view_array)[accessPointView.ordinal],
-                icon = painterResource(R.drawable.view_carousel_24px),
-                onClick = { showApViewDialog = true }
-            )
-
-            HorizontalDivider()
-            PreferenceCategory(title = stringResource(R.string.graph_maximum_y_title))
-            val graphYValues = stringArrayResource(R.array.graph_maximum_y_index_array)
-            val graphYEntries = stringArrayResource(R.array.graph_maximum_y_array)
-            val graphYIndex =
-                graphYValues.indexOf((graphMaximumY / -10).toString()).coerceAtLeast(0)
-            ListPreference(
-                title = stringResource(R.string.graph_maximum_y_title),
-                summary = graphYEntries[graphYIndex],
-                onClick = { showGraphYDialog = true }
-            )
-            ListPreference(
-                title = stringResource(R.string.channel_graph_legend_title),
-                summary = stringArrayResource(R.array.graph_legend_array)[channelGraphLegend.ordinal],
-                icon = painterResource(R.drawable.insert_chart_24px),
-                onClick = { showChannelLegendDialog = true }
-            )
-            ListPreference(
-                title = stringResource(R.string.time_graph_legend_title),
-                summary = stringArrayResource(R.array.graph_legend_array)[timeGraphLegend.ordinal],
-                icon = painterResource(R.drawable.show_chart_24px),
-                onClick = { showTimeLegendDialog = true }
-            )
-
-            HorizontalDivider()
-            PreferenceCategory(title = stringResource(R.string.theme_title))
-            ListPreference(
-                title = stringResource(R.string.theme_title),
-                summary = stringArrayResource(R.array.theme_array)[themeStyle.ordinal],
-                icon = painterResource(R.drawable.ic_color_lens),
-                onClick = { showThemeDialog = true }
-            )
-            SwitchPreference(
-                title = stringResource(R.string.keep_screen_on_title),
-                checked = keepScreenOn,
-                onCheckedChange = { onSetKeepScreenOn(it) },
-                icon = painterResource(R.drawable.brightness_medium_24px)
-            )
-            if (showWiFiOffOnExit) {
-                SwitchPreference(
-                    title = stringResource(R.string.wifi_off_on_exit_title),
-                    checked = wiFiOffOnExit,
-                    onCheckedChange = { onSetWiFiOffOnExit(it) },
-                    icon = painterResource(R.drawable.wifi_off_24px)
+            SettingsSection(stringResource(R.string.scan_speed_title)) {
+                SettingsItem(
+                    title = R.string.scan_speed_title,
+                    summary = scanSpeed.toString(),
+                    icon = R.drawable.ic_fast_forward,
+                    onClick = { dialogToShow = DialogType.SCAN_SPEED }
                 )
             }
 
-            HorizontalDivider()
-            PreferenceCategory(title = stringResource(R.string.country_code_title))
-            val countryName = WiFiChannelCountry.find(countryCode).countryName(currentLocale)
-            ListPreference(
-                title = stringResource(R.string.country_code_title),
-                summary = countryName,
-                onClick = { showCountryDialog = true }
-            )
-            val languageDisplayName =
-                supportedLanguages().find { toLanguageTag(it) == languageLocale }
+            SettingsSection(stringResource(R.string.sort_by_title)) {
+                SettingsItem(
+                    title = R.string.sort_by_title,
+                    summary = stringArrayResource(R.array.sort_by_array)[sortBy.ordinal],
+                    icon = R.drawable.ic_sort,
+                    onClick = { dialogToShow = DialogType.SORT_BY }
+                )
+                SettingsItem(
+                    title = R.string.group_by_title,
+                    summary = stringArrayResource(R.array.group_by_array)[groupBy.ordinal],
+                    icon = R.drawable.group_24px,
+                    onClick = { dialogToShow = DialogType.GROUP_BY }
+                )
+            }
+
+            SettingsSection(stringResource(R.string.connection_view_title)) {
+                SettingsItem(
+                    title = R.string.connection_view_title,
+                    summary = stringArrayResource(R.array.connection_view_array)[connectionViewType.ordinal],
+                    icon = R.drawable.view_carousel_24px,
+                    onClick = { dialogToShow = DialogType.CONNECTION_VIEW }
+                )
+                SettingsItem(
+                    title = R.string.ap_view_title,
+                    summary = stringArrayResource(R.array.ap_view_array)[accessPointView.ordinal],
+                    icon = R.drawable.view_carousel_24px,
+                    onClick = { dialogToShow = DialogType.AP_VIEW }
+                )
+            }
+
+            SettingsSection(stringResource(R.string.graph_maximum_y_title)) {
+                val graphYEntries = stringArrayResource(R.array.graph_maximum_y_array)
+                val graphYIndex = stringArrayResource(R.array.graph_maximum_y_index_array)
+                    .indexOf((graphMaximumY / -10).toString()).coerceAtLeast(0)
+                SettingsItem(
+                    title = R.string.graph_maximum_y_title,
+                    summary = graphYEntries[graphYIndex],
+                    onClick = { dialogToShow = DialogType.GRAPH_Y }
+                )
+                SettingsItem(
+                    title = R.string.channel_graph_legend_title,
+                    summary = stringArrayResource(R.array.graph_legend_array)[channelGraphLegend.ordinal],
+                    icon = R.drawable.insert_chart_24px,
+                    onClick = { dialogToShow = DialogType.CHANNEL_LEGEND }
+                )
+                SettingsItem(
+                    title = R.string.time_graph_legend_title,
+                    summary = stringArrayResource(R.array.graph_legend_array)[timeGraphLegend.ordinal],
+                    icon = R.drawable.show_chart_24px,
+                    onClick = { dialogToShow = DialogType.TIME_LEGEND }
+                )
+            }
+
+            SettingsSection(stringResource(R.string.theme_title)) {
+                SettingsItem(
+                    title = R.string.theme_title,
+                    summary = stringArrayResource(R.array.theme_array)[themeStyle.ordinal],
+                    icon = R.drawable.ic_color_lens,
+                    onClick = { dialogToShow = DialogType.THEME }
+                )
+                SwitchPreference(
+                    title = stringResource(R.string.keep_screen_on_title),
+                    checked = keepScreenOn,
+                    onCheckedChange = actions.onSetKeepScreenOn,
+                    icon = painterResource(R.drawable.brightness_medium_24px)
+                )
+                if (showWiFiOffOnExit) {
+                    SwitchPreference(
+                        title = stringResource(R.string.wifi_off_on_exit_title),
+                        checked = wiFiOffOnExit,
+                        onCheckedChange = actions.onSetWiFiOffOnExit,
+                        icon = painterResource(R.drawable.wifi_off_24px)
+                    )
+                }
+            }
+
+            SettingsSection(stringResource(R.string.country_code_title)) {
+                val countryName = WiFiChannelCountry.find(countryCode).countryName(currentLocale)
+                SettingsItem(
+                    title = R.string.country_code_title,
+                    summary = countryName,
+                    onClick = { dialogToShow = DialogType.COUNTRY }
+                )
+                val languageDisplayName = supportedLanguages()
+                    .find { toLanguageTag(it) == languageLocale }
                     ?.getDisplayName(currentLocale)
                     ?.replaceFirstChar { it.titlecase(currentLocale) } ?: languageLocale
-            ListPreference(
-                title = stringResource(R.string.language_title),
-                summary = languageDisplayName,
-                icon = painterResource(R.drawable.language_24px),
-                onClick = { showLanguageDialog = true }
-            )
+                SettingsItem(
+                    title = R.string.language_title,
+                    summary = languageDisplayName,
+                    icon = R.drawable.language_24px,
+                    onClick = { dialogToShow = DialogType.LANGUAGE }
+                )
+            }
 
-            HorizontalDivider()
-            PreferenceCategory(title = stringResource(R.string.experimental_title))
-            SwitchPreference(
-                title = stringResource(R.string.cache_off_title),
-                checked = cacheOff,
-                onCheckedChange = { onSetCacheOff(it) }
-            )
+            SettingsSection(stringResource(R.string.experimental_title)) {
+                SwitchPreference(
+                    title = stringResource(R.string.cache_off_title),
+                    checked = cacheOff,
+                    onCheckedChange = actions.onSetCacheOff
+                )
+            }
 
             HorizontalDivider()
             ActionPreference(
                 title = stringResource(R.string.reset_title),
                 icon = painterResource(R.drawable.ic_reset),
-                onClick = onReset
+                onClick = actions.onReset
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsSection(title: String, content: @Composable () -> Unit) {
+    PreferenceCategory(title = title)
+    content()
+    HorizontalDivider()
+}
+
+@Composable
+private fun SettingsItem(title: Int, summary: String, icon: Int? = null, onClick: () -> Unit) {
+    ListPreference(
+        title = stringResource(title),
+        summary = summary,
+        icon = icon?.let { painterResource(it) },
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun SettingsDialogs(
+    dialogType: DialogType,
+    scanSpeed: Int,
+    sortBy: SortBy,
+    groupBy: GroupBy,
+    connectionViewType: ConnectionViewType,
+    accessPointView: AccessPointViewType,
+    themeStyle: ThemeStyle,
+    graphMaximumY: Int,
+    channelGraphLegend: GraphLegend,
+    timeGraphLegend: GraphLegend,
+    countryCode: String,
+    languageLocale: String,
+    currentLocale: Locale,
+    onDismiss: () -> Unit,
+    actions: SettingsActions
+) {
+    when (dialogType) {
+        DialogType.SCAN_SPEED -> ListPreferenceDialog(
+            title = stringResource(R.string.scan_speed_title),
+            entries = stringArrayResource(R.array.scan_speed_array).toList(),
+            entryValues = stringArrayResource(R.array.scan_speed_array).toList(),
+            selectedValue = scanSpeed.toString(),
+            onValueSelected = { actions.onSetScanSpeed(it.toInt()); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.SORT_BY -> EnumPreferenceDialog(
+            title = stringResource(R.string.sort_by_title),
+            entries = stringArrayResource(R.array.sort_by_array).toList(),
+            values = SortBy.entries,
+            selectedValue = sortBy,
+            onValueSelected = { actions.onSetSortBy(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.GROUP_BY -> EnumPreferenceDialog(
+            title = stringResource(R.string.group_by_title),
+            entries = stringArrayResource(R.array.group_by_array).toList(),
+            values = GroupBy.entries,
+            selectedValue = groupBy,
+            onValueSelected = { actions.onSetGroupBy(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.CONNECTION_VIEW -> EnumPreferenceDialog(
+            title = stringResource(R.string.connection_view_title),
+            entries = stringArrayResource(R.array.connection_view_array).toList(),
+            values = ConnectionViewType.entries,
+            selectedValue = connectionViewType,
+            onValueSelected = { actions.onSetConnectionViewType(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.AP_VIEW -> EnumPreferenceDialog(
+            title = stringResource(R.string.ap_view_title),
+            entries = stringArrayResource(R.array.ap_view_array).toList(),
+            values = AccessPointViewType.entries,
+            selectedValue = accessPointView,
+            onValueSelected = { actions.onSetAccessPointView(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.THEME -> EnumPreferenceDialog(
+            title = stringResource(R.string.theme_title),
+            entries = stringArrayResource(R.array.theme_array).toList(),
+            values = ThemeStyle.entries,
+            selectedValue = themeStyle,
+            onValueSelected = { actions.onSetThemeStyle(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.GRAPH_Y -> ListPreferenceDialog(
+            title = stringResource(R.string.graph_maximum_y_title),
+            entries = stringArrayResource(R.array.graph_maximum_y_array).toList(),
+            entryValues = stringArrayResource(R.array.graph_maximum_y_index_array).toList(),
+            selectedValue = (graphMaximumY / -10).toString(),
+            onValueSelected = { actions.onSetGraphMaximumY(it.toInt()); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.CHANNEL_LEGEND -> EnumPreferenceDialog(
+            title = stringResource(R.string.channel_graph_legend_title),
+            entries = stringArrayResource(R.array.graph_legend_array).toList(),
+            values = GraphLegend.entries,
+            selectedValue = channelGraphLegend,
+            onValueSelected = { actions.onSetChannelGraphLegend(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.TIME_LEGEND -> EnumPreferenceDialog(
+            title = stringResource(R.string.time_graph_legend_title),
+            entries = stringArrayResource(R.array.graph_legend_array).toList(),
+            values = GraphLegend.entries,
+            selectedValue = timeGraphLegend,
+            onValueSelected = { actions.onSetTimeGraphLegend(it); onDismiss() },
+            onDismiss = onDismiss
+        )
+
+        DialogType.COUNTRY -> {
+            val countries = WiFiChannelCountry.findAll()
+            ListPreferenceDialog(
+                title = stringResource(R.string.country_code_title),
+                entries = countries.map { it.countryName(currentLocale) },
+                entryValues = countries.map { it.countryCode },
+                selectedValue = countryCode,
+                onValueSelected = { actions.onSetCountryCode(it); onDismiss() },
+                onDismiss = onDismiss
+            )
+        }
+
+        DialogType.LANGUAGE -> {
+            val languages = supportedLanguages()
+            ListPreferenceDialog(
+                title = stringResource(R.string.language_title),
+                entries = languages.map {
+                    it.getDisplayName(it).replaceFirstChar { char ->
+                        if (char.isLowerCase()) char.titlecase(currentLocale) else char.toString()
+                    }
+                },
+                entryValues = languages.map { toLanguageTag(it) },
+                selectedValue = languageLocale,
+                onValueSelected = { actions.onSetLanguage(it); onDismiss() },
+                onDismiss = onDismiss
+            )
+        }
+
+        else -> {}
     }
 }
 
@@ -539,62 +544,22 @@ fun SettingsScreenLightPreview() {
                 languageLocale = "en",
                 cacheOff = false,
                 showWiFiOffOnExit = true,
-                onSetScanSpeed = {},
-                onSetSortBy = {},
-                onSetGroupBy = {},
-                onSetAccessPointView = {},
-                onSetConnectionViewType = {},
-                onSetGraphMaximumY = {},
-                onSetChannelGraphLegend = {},
-                onSetTimeGraphLegend = {},
-                onSetThemeStyle = {},
-                onSetKeepScreenOn = {},
-                onSetWiFiOffOnExit = {},
-                onSetCountryCode = {},
-                onSetLanguage = {},
-                onSetCacheOff = {},
-                onReset = {}
-            )
-        }
-    }
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
-@Composable
-fun SettingsScreenDarkPreview() {
-    AppTheme {
-        Surface {
-            SettingsContent(
-                scanSpeed = 5,
-                sortBy = SortBy.STRENGTH,
-                groupBy = GroupBy.NONE,
-                accessPointView = AccessPointViewType.COMPLETE,
-                connectionViewType = ConnectionViewType.COMPACT,
-                themeStyle = ThemeStyle.DARK,
-                keepScreenOn = true,
-                wiFiOffOnExit = false,
-                graphMaximumY = -20,
-                channelGraphLegend = GraphLegend.HIDE,
-                timeGraphLegend = GraphLegend.LEFT,
-                countryCode = "US",
-                languageLocale = "en",
-                cacheOff = false,
-                showWiFiOffOnExit = true,
-                onSetScanSpeed = {},
-                onSetSortBy = {},
-                onSetGroupBy = {},
-                onSetAccessPointView = {},
-                onSetConnectionViewType = {},
-                onSetGraphMaximumY = {},
-                onSetChannelGraphLegend = {},
-                onSetTimeGraphLegend = {},
-                onSetThemeStyle = {},
-                onSetKeepScreenOn = {},
-                onSetWiFiOffOnExit = {},
-                onSetCountryCode = {},
-                onSetLanguage = {},
-                onSetCacheOff = {},
-                onReset = {}
+                actions = SettingsActions(
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {})
             )
         }
     }
