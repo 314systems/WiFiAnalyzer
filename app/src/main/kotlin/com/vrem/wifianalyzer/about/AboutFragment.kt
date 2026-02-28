@@ -18,29 +18,18 @@
 package com.vrem.wifianalyzer.about
 
 import android.content.Intent
-import android.content.pm.PackageInfo
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import com.vrem.util.EMPTY
-import com.vrem.util.packageInfo
-import com.vrem.util.readFile
-import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vrem.wifianalyzer.ui.theme.AppTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class AboutFragment : Fragment() {
     override fun onCreateView(
@@ -51,23 +40,11 @@ class AboutFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 AppTheme {
-                    val activity = requireActivity()
-                    val wiFiManagerWrapper = MainContext.INSTANCE.wiFiManagerWrapper
-                    val uiState = AboutUiState(
-                        packageName = activity.packageName,
-                        versionInfo = version(activity),
-                        copyright = copyright(),
-                        deviceInfo = device(),
-                        wiFiThrottlingEnabled = wiFiManagerWrapper.isScanThrottleEnabled(),
-                        is5GHzBandSupported = wiFiManagerWrapper.is5GHzBandSupported(),
-                        is6GHzBandSupported = wiFiManagerWrapper.is6GHzBandSupported(),
-                    )
+                    val viewModel: AboutViewModel = viewModel()
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
                     AboutScreen(
                         uiState = uiState,
-                        onLicenseClick = { showDialog(R.string.gpl, R.raw.gpl) },
-                        onContributorsClick = { showDialog(R.string.about_contributor_title, R.raw.contributors, false) },
-                        onGraphViewLicenseClick = { showDialog(R.string.al, R.raw.al) },
-                        onMaterialDesignIconsLicenseClick = { showDialog(R.string.al, R.raw.al) },
                         onWriteReviewClick = { writeReview() }
                     )
                 }
@@ -75,55 +52,14 @@ class AboutFragment : Fragment() {
         }
     }
 
-    private fun showDialog(titleId: Int, resourceId: Int, isSmallFont: Boolean = true) {
-        val activity = requireActivity()
-        if (!activity.isFinishing) {
-            val text = readFile(activity.resources, resourceId)
-            val alertDialog: AlertDialog = AlertDialog.Builder(activity)
-                .setTitle(titleId)
-                .setMessage(text)
-                .setNeutralButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
-                .create()
-            alertDialog.show()
-            if (isSmallFont) {
-                alertDialog.findViewById<TextView>(android.R.id.message)?.textSize = 8f
-            }
-        }
-    }
-
     private fun writeReview() {
         val activity = requireActivity()
-        val url = "market://details?id=" + activity.packageName
+        val url = "market://details?id=${activity.packageName}"
         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
         runCatching {
             activity.startActivity(intent)
         }.getOrElse {
             Toast.makeText(activity, it.localizedMessage, Toast.LENGTH_LONG).show()
         }
-    }
-
-    private fun device(): String = Build.MANUFACTURER + " - " + Build.BRAND + " - " + Build.MODEL
-
-    private fun copyright(): String =
-        resources.getString(R.string.app_copyright) + SimpleDateFormat(YEAR_FORMAT, Locale.getDefault()).format(Date())
-
-    private fun version(activity: FragmentActivity): String {
-        val configuration = MainContext.INSTANCE.configuration
-        return applicationVersion(activity) +
-                ifElse(configuration.sizeAvailable, "S") +
-                ifElse(configuration.largeScreen, "L") +
-                " (" + Build.VERSION.RELEASE + "-" + Build.VERSION.SDK_INT + ")"
-    }
-
-    private fun applicationVersion(activity: FragmentActivity): String =
-        runCatching {
-            val packageInfo: PackageInfo = activity.packageInfo()
-            packageInfo.versionName + " - " + PackageInfoCompat.getLongVersionCode(packageInfo)
-        }.getOrDefault(String.EMPTY)
-
-    private fun ifElse(condition: Boolean, value: String) = if (condition) value else String.EMPTY
-
-    companion object {
-        private const val YEAR_FORMAT = "yyyy"
     }
 }

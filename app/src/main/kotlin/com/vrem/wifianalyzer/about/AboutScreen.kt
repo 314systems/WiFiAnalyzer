@@ -18,6 +18,7 @@
 
 package com.vrem.wifianalyzer.about
 
+import androidx.annotation.RawRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
@@ -37,9 +39,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -49,6 +57,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.vrem.util.readFile
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 
@@ -62,16 +72,20 @@ data class AboutUiState(
     val is6GHzBandSupported: Boolean,
 )
 
+private data class DialogState(
+    @StringRes val titleId: Int,
+    @RawRes val resourceId: Int,
+    val isSmallFont: Boolean = true
+)
+
 @Composable
 fun AboutScreen(
     uiState: AboutUiState,
-    onLicenseClick: () -> Unit,
-    onContributorsClick: () -> Unit,
-    onGraphViewLicenseClick: () -> Unit,
-    onMaterialDesignIconsLicenseClick: () -> Unit,
     onWriteReviewClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var dialogState by remember { mutableStateOf<DialogState?>(null) }
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -91,19 +105,45 @@ fun AboutScreen(
 
             AboutSectionCard(title = stringResource(R.string.about_license_title)) {
                 AboutLinks(
-                    onLicenseClick = onLicenseClick,
-                    onContributorsClick = onContributorsClick,
+                    onLicenseClick = { dialogState = DialogState(R.string.gpl, R.raw.gpl) },
+                    onContributorsClick = {
+                        dialogState =
+                            DialogState(R.string.about_contributor_title, R.raw.contributors, false)
+                    },
                     onWriteReviewClick = onWriteReviewClick,
                 )
             }
 
             AboutSectionCard(title = stringResource(R.string.about_libraries_title)) {
                 AboutLibraries(
-                    onGraphViewLicenseClick = onGraphViewLicenseClick,
-                    onMaterialDesignIconsLicenseClick = onMaterialDesignIconsLicenseClick,
+                    onGraphViewLicenseClick = { dialogState = DialogState(R.string.al, R.raw.al) },
+                    onMaterialDesignIconsLicenseClick = {
+                        dialogState = DialogState(R.string.al, R.raw.al)
+                    },
                 )
             }
         }
+    }
+
+    dialogState?.let { state ->
+        val context = LocalContext.current
+        val text = remember(state.resourceId) { readFile(context.resources, state.resourceId) }
+        AlertDialog(
+            onDismissRequest = { dialogState = null },
+            confirmButton = {
+                TextButton(onClick = { dialogState = null }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            title = { Text(stringResource(state.titleId)) },
+            text = {
+                Text(
+                    text = text,
+                    fontSize = if (state.isSmallFont) 10.sp else 14.sp,
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                )
+            }
+        )
     }
 }
 
@@ -394,10 +434,6 @@ private fun AboutScreenPreview() {
     AppTheme {
         AboutScreen(
             uiState = uiState,
-            onLicenseClick = {},
-            onContributorsClick = {},
-            onGraphViewLicenseClick = {},
-            onMaterialDesignIconsLicenseClick = {},
             onWriteReviewClick = {}
         )
     }
