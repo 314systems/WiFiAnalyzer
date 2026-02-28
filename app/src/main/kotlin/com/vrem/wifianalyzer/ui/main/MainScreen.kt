@@ -40,6 +40,7 @@ import com.vrem.wifianalyzer.settings.SettingsViewModel
 import com.vrem.wifianalyzer.vendor.VendorView
 import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointAlertDialog
 import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointsContent
+import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.channelavailable.ChannelAvailableContent
 import com.vrem.wifianalyzer.wifi.channelavailable.ChannelAvailableViewModel
 import com.vrem.wifianalyzer.wifi.channelgraph.ChannelGraphContent
@@ -52,9 +53,12 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     currentMenu: NavigationMenu,
     isScannerRunning: Boolean,
+    isFilterActive: Boolean,
+    currentWiFiBand: WiFiBand,
     onMenuSelected: (NavigationMenu) -> Unit,
     onToggleScanner: () -> Unit,
     onFilterClick: () -> Unit,
+    onWiFiBandClick: (WiFiBand) -> Unit,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -78,9 +82,12 @@ fun MainScreen(
                 MainTopAppBar(
                     currentMenu = currentMenu,
                     isScannerRunning = isScannerRunning,
+                    isFilterActive = isFilterActive,
+                    currentWiFiBand = currentWiFiBand,
                     onNavigationClick = { scope.launch { drawerState.open() } },
                     onScannerClick = onToggleScanner,
-                    onFilterClick = onFilterClick
+                    onFilterClick = onFilterClick,
+                    onWiFiBandClick = onWiFiBandClick
                 )
             },
             bottomBar = {

@@ -17,14 +17,7 @@
  */
 package com.vrem.wifianalyzer.navigation
 
-import com.vrem.wifianalyzer.MainActivity
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.navigation.availability.NavigationOption
-import com.vrem.wifianalyzer.navigation.availability.navigationOptionAp
-import com.vrem.wifianalyzer.navigation.availability.navigationOptionOff
-import com.vrem.wifianalyzer.navigation.availability.navigationOptionOther
-import com.vrem.wifianalyzer.navigation.availability.navigationOptionRating
-import com.vrem.wifianalyzer.navigation.availability.navigationOptionWiFiSwitchOn
 
 val MAIN_NAVIGATION =
     listOf(
@@ -41,35 +34,45 @@ enum class NavigationMenu(
     val idBottom: Int,
     val title: Int,
     private val isRegistered: Boolean = false,
-    val navigationOptions: List<NavigationOption> = navigationOptionOff,
+    val scannerVisible: Boolean = false,
+    val filterVisible: Boolean = false,
+    val wiFiBandVisible: Boolean = false,
 ) {
     ACCESS_POINTS(
         R.id.nav_drawer_access_points,
         R.id.nav_bottom_access_points,
         R.string.action_access_points,
         isRegistered = true,
-        navigationOptions = navigationOptionAp,
+        scannerVisible = true,
+        filterVisible = true,
+        wiFiBandVisible = true,
     ),
     CHANNEL_RATING(
         R.id.nav_drawer_channel_rating,
         R.id.nav_bottom_channel_rating,
         R.string.action_channel_rating,
         isRegistered = true,
-        navigationOptions = navigationOptionRating,
+        scannerVisible = true,
+        filterVisible = false,
+        wiFiBandVisible = true,
     ),
     CHANNEL_GRAPH(
         R.id.nav_drawer_channel_graph,
         R.id.nav_bottom_channel_graph,
         R.string.action_channel_graph,
         isRegistered = true,
-        navigationOptions = navigationOptionOther,
+        scannerVisible = true,
+        filterVisible = true,
+        wiFiBandVisible = true,
     ),
     TIME_GRAPH(
         R.id.nav_drawer_time_graph,
         R.id.nav_bottom_time_graph,
         R.string.action_time_graph,
         isRegistered = true,
-        navigationOptions = navigationOptionOther,
+        scannerVisible = true,
+        filterVisible = true,
+        wiFiBandVisible = true,
     ),
     EXPORT(
         R.id.nav_drawer_export,
@@ -98,9 +101,7 @@ enum class NavigationMenu(
     ),
     ;
 
-    fun activateOptions(mainActivity: MainActivity) = navigationOptions.forEach { it(mainActivity) }
-
-    fun wiFiBandSwitchable(): Boolean = navigationOptions.contains(navigationOptionWiFiSwitchOn)
+    fun wiFiBandSwitchable(): Boolean = wiFiBandVisible
 
     fun registered(): Boolean = isRegistered
 

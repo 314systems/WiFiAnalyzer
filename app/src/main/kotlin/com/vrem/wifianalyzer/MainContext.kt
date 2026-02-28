@@ -22,7 +22,6 @@ import android.content.res.Resources
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.Looper
-import android.view.LayoutInflater
 import com.vrem.wifianalyzer.permission.PermissionService
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
@@ -48,8 +47,6 @@ enum class MainContext {
     val context: Context get() = mainActivity.applicationContext
 
     val resources: Resources get() = context.resources
-
-    val layoutInflater: LayoutInflater get() = mainActivity.layoutInflater
 
     private val wiFiManager: WifiManager get() = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
 

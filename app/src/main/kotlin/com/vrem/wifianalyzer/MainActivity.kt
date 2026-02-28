@@ -39,13 +39,13 @@ import com.vrem.util.specialTrim
 import com.vrem.wifianalyzer.export.Export
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.navigation.NavigationMenuControl
-import com.vrem.wifianalyzer.navigation.options.OptionMenu
 import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.main.MainScreen
 import com.vrem.wifianalyzer.ui.theme.AppTheme
+import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
 
@@ -56,12 +56,13 @@ class MainActivity :
     private lateinit var mainReload: MainReload
     private lateinit var settings: Settings
 
-    // Old UI bridges
-    internal lateinit var optionMenu: OptionMenu
-
     var currentMenu by mutableStateOf(NavigationMenu.ACCESS_POINTS)
         private set
     var isScannerRunning by mutableStateOf(false)
+        private set
+    var isFilterActive by mutableStateOf(false)
+        private set
+    var currentWiFiBand by mutableStateOf(WiFiBand.GHZ2)
         private set
     var showFilterDialog by mutableStateOf(false)
 
@@ -78,7 +79,6 @@ class MainActivity :
 
         mainReload = MainReload(settings)
         currentMenu = settings.selectedMenu()
-        optionMenu = OptionMenu()
 
         super.onCreate(savedInstanceState)
         installSplashScreen()
@@ -93,6 +93,8 @@ class MainActivity :
                 MainScreen(
                     currentMenu = currentMenu,
                     isScannerRunning = isScannerRunning,
+                    isFilterActive = isFilterActive,
+                    currentWiFiBand = currentWiFiBand,
                     onMenuSelected = { menu ->
                         if (menu == NavigationMenu.EXPORT) {
                             export()
@@ -106,7 +108,11 @@ class MainActivity :
                         MainContext.INSTANCE.scannerService.toggle()
                         update()
                     },
-                    onFilterClick = { showFilterDialog = true }
+                    onFilterClick = { showFilterDialog = true },
+                    onWiFiBandClick = { band ->
+                        settings.wiFiBand(band)
+                        update()
+                    }
                 )
 
                 if (showFilterDialog) {
@@ -193,7 +199,8 @@ class MainActivity :
         val scannerService = MainContext.INSTANCE.scannerService
         scannerService.update()
         isScannerRunning = scannerService.running()
-        updateActionBar()
+        isFilterActive = MainContext.INSTANCE.filtersAdapter.isActive()
+        currentWiFiBand = settings.wiFiBand()
     }
 
     private fun applyKeepScreenOn() {
@@ -209,7 +216,7 @@ class MainActivity :
     }
 
     override fun updateActionBar() {
-        currentNavigationMenu().activateOptions(this)
+        // No longer needed with Compose TopAppBar
     }
 
     override fun mainConnectionVisibility(visibility: Int) {
@@ -218,7 +225,7 @@ class MainActivity :
 
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
         currentMenu = NavigationMenu.find(menuItem.itemId)
-        updateActionBar()
+        update()
         return true
     }
 
@@ -229,7 +236,7 @@ class MainActivity :
     override fun currentNavigationMenu(navigationMenu: NavigationMenu) {
         currentMenu = navigationMenu
         settings.saveSelectedMenu(navigationMenu)
-        updateActionBar()
+        update()
     }
 
     override fun navigationView(): NavigationView = throw UnsupportedOperationException()
