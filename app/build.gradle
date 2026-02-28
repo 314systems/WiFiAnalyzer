@@ -109,14 +109,6 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
-            all {
-                jvmArgs("-XX:+EnableDynamicAgentLoading")
-                testLogging {
-                    events = ["passed", "skipped", "failed", "standardOut", "standardError"]
-                    outputs.upToDateWhen { false }
-                    showStandardStreams = true
-                }
-            }
         }
     }
 
@@ -127,6 +119,15 @@ android {
 
     lint {
         lintConfig = file("lint.xml")
+    }
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs "-XX:+EnableDynamicAgentLoading"
+
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        showStandardStreams = true
     }
 }
 
