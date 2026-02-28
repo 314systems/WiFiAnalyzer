@@ -243,6 +243,6 @@ class MainActivity :
     override fun navigationView(): NavigationView = navigationMenuController.drawerNavigationView
 
     fun mainConnectionVisibility(visibility: Int) {
-        binding.mainContent.mainConnection.mainConnection.visibility = visibility
+        binding.mainContent.mainConnectionComposeView.visibility = visibility
     }
 }

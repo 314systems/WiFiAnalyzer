@@ -27,9 +27,10 @@
         android:id="@+id/main_toolbar"
         layout="@layout/main_toolbar" />
 
-    <include
-        android:id="@+id/main_connection"
-        layout="@layout/main_connection" />
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/main_connection_compose_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
