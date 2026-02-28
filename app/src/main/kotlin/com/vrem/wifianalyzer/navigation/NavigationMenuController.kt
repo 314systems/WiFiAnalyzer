@@ -19,27 +19,28 @@ package com.vrem.wifianalyzer.navigation
 
 import android.view.Menu
 import android.view.MenuItem
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.view.forEach
 import androidx.core.view.get
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import com.vrem.wifianalyzer.R
 
 class NavigationMenuController(
     navigationMenuControl: NavigationMenuControl,
     val drawerNavigationView: NavigationView = navigationMenuControl.findViewById(R.id.nav_drawer),
-    val bottomNavigationView: BottomNavigationView = navigationMenuControl.findViewById(R.id.nav_bottom),
 ) {
-    private lateinit var currentNavigationMenu: NavigationMenu
+    var selectedMenu by mutableStateOf(NavigationMenu.ACCESS_POINTS)
+        private set
 
-    fun currentMenuItem(): MenuItem = drawerNavigationView.menu[currentNavigationMenu.ordinal]
+    fun currentMenuItem(): MenuItem = drawerNavigationView.menu[selectedMenu.ordinal]
 
-    fun currentNavigationMenu(): NavigationMenu = currentNavigationMenu
+    fun currentNavigationMenu(): NavigationMenu = selectedMenu
 
     fun currentNavigationMenu(navigationMenu: NavigationMenu) {
-        currentNavigationMenu = navigationMenu
+        selectedMenu = navigationMenu
         setChecked(drawerNavigationView.menu, navigationMenu.idDrawer)
-        setChecked(bottomNavigationView.menu, navigationMenu.idBottom)
     }
 
     private fun setChecked(
@@ -48,12 +49,11 @@ class NavigationMenuController(
     ) {
         if (id != -1) {
             menu.forEach { it.isChecked = false }
-            menu.findItem(id)!!.isChecked = true
+            menu.findItem(id)?.let { it.isChecked = true }
         }
     }
 
     init {
         drawerNavigationView.setNavigationItemSelectedListener(navigationMenuControl)
-        bottomNavigationView.setOnItemSelectedListener(navigationMenuControl)
     }
 }

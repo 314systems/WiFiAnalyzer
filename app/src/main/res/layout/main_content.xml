@@ -18,9 +18,8 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical">
 
     <include
@@ -45,18 +44,13 @@
         <FrameLayout
             android:id="@+id/main_fragment"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/nav_bottom"
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/nav_bottom_compose_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/primary_material_dark"
-        app:itemIconTint="@drawable/menu_selector"
-        app:itemTextColor="@drawable/menu_selector"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/nav_bottom_menu" />
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

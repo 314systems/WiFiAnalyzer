@@ -43,6 +43,7 @@ import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
+import com.vrem.wifianalyzer.ui.main.MainBottomNavigation
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.accesspoint.ConnectionView
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
@@ -128,6 +129,22 @@ class MainActivity :
 
         navigationMenuController = NavigationMenuController(this)
         navigationMenuController.currentNavigationMenu(settings.selectedMenu())
+
+        binding.mainContent.navBottomComposeView.setContent {
+            AppTheme {
+                MainBottomNavigation(
+                    selectedMenu = navigationMenuController.selectedMenu,
+                    onMenuSelected = { menu ->
+                        val menuItem =
+                            navigationMenuController.drawerNavigationView.menu.findItem(menu.idDrawer)
+                        if (menuItem != null) {
+                            onNavigationItemSelected(menuItem)
+                        }
+                    }
+                )
+            }
+        }
+
         onNavigationItemSelected(currentMenuItem())
 
         connectionView = ConnectionView(this)

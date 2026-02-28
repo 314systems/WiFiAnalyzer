@@ -21,9 +21,9 @@ import android.view.View
 import com.vrem.wifianalyzer.R
 
 internal val navigationOptionBottomNavOff: NavigationOption = {
-    it.findViewById<View>(R.id.nav_bottom).visibility = View.GONE
+    it.findViewById<View>(R.id.nav_bottom_compose_view).visibility = View.GONE
 }
 
 internal val navigationOptionBottomNavOn: NavigationOption = {
-    it.findViewById<View>(R.id.nav_bottom).visibility = View.VISIBLE
+    it.findViewById<View>(R.id.nav_bottom_compose_view).visibility = View.VISIBLE
 }
