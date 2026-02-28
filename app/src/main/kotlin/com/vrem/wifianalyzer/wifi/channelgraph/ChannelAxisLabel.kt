@@ -23,6 +23,7 @@ import com.vrem.util.EMPTY
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.graphutils.MAX_Y
 import com.vrem.wifianalyzer.wifi.graphutils.MIN_Y
+import kotlin.math.roundToInt
 
 internal class ChannelAxisLabel(
     private val wiFiBand: WiFiBand,
@@ -31,20 +32,13 @@ internal class ChannelAxisLabel(
         value: Double,
         isValueX: Boolean,
     ): String {
-        val valueAsInt = (value + if (value < 0) -0.5 else 0.5).toInt()
+        val intValue = value.roundToInt()
         return if (isValueX) {
-            wiFiBand.wiFiChannels.graphChannelByFrequency(valueAsInt)
+            wiFiBand.wiFiChannels.graphChannelByFrequency(intValue)
         } else {
-            yValue(valueAsInt)
+            if (intValue in (MIN_Y + 1)..MAX_Y) "$intValue" else String.EMPTY
         }
     }
-
-    private fun yValue(value: Int): String =
-        if (value in (MIN_Y + 1)..MAX_Y) {
-            "$value"
-        } else {
-            String.EMPTY
-        }
 
     override fun setViewport(viewport: Viewport) {
         // ignore
