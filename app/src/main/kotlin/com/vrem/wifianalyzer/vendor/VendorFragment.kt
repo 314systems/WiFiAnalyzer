@@ -15,39 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
 package com.vrem.wifianalyzer.vendor
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
-import androidx.fragment.app.ListFragment
-import com.vrem.util.specialTrim
+import androidx.compose.material3.Surface
+import androidx.compose.ui.platform.ComposeView
+import androidx.fragment.app.Fragment
 import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.databinding.VendorContentBinding
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 
-class VendorFragment : ListFragment() {
+class VendorFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        val binding: VendorContentBinding = VendorContentBinding.inflate(inflater, container, false)
-        val vendorAdapter = VendorAdapter(requireActivity(), MainContext.INSTANCE.vendorService)
-        listAdapter = vendorAdapter
-        binding.vendorSearchText.setOnQueryTextListener(Listener(vendorAdapter))
-        return binding.root
-    }
-
-    internal class Listener(
-        private val vendorAdapter: VendorAdapter,
-    ) : SearchView.OnQueryTextListener {
-        override fun onQueryTextSubmit(query: String): Boolean = false
-
-        override fun onQueryTextChange(newText: String): Boolean {
-            vendorAdapter.update(newText.specialTrim())
-            return true
+        savedInstanceState: Bundle?
+    ): View = ComposeView(requireContext()).apply {
+        setContent {
+            AppTheme {
+                Surface {
+                    VendorView(vendorService = MainContext.INSTANCE.vendorService)
+                }
+            }
         }
     }
 }
