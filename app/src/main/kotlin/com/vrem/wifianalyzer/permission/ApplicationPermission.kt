@@ -18,31 +18,26 @@
 package com.vrem.wifianalyzer.permission
 
 import android.Manifest
-import android.app.Activity
 import android.content.pm.PackageManager
+import androidx.fragment.app.FragmentActivity
 import com.vrem.annotation.OpenClass
 
 @OpenClass
 class ApplicationPermission(
-    private val activity: Activity,
-    private val permissionDialog: PermissionDialog = PermissionDialog(activity),
+    private val activity: FragmentActivity,
 ) {
     fun check() {
         if (!granted() && !activity.isFinishing) {
-            permissionDialog.show()
+            val manager = activity.supportFragmentManager
+            if (manager.findFragmentByTag(PermissionDialogFragment.TAG) == null) {
+                PermissionDialogFragment().show(manager, PermissionDialogFragment.TAG)
+            }
         }
     }
-
-    fun granted(
-        requestCode: Int,
-        grantResults: IntArray,
-    ): Boolean =
-        requestCode == REQUEST_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
 
     fun granted(): Boolean = activity.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED
 
     companion object {
         internal const val PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
-        internal const val REQUEST_CODE = 0x123450
     }
 }

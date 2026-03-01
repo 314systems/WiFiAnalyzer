@@ -18,9 +18,10 @@
 package com.vrem.wifianalyzer.permission
 
 import android.Manifest
-import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
@@ -37,13 +38,14 @@ import org.robolectric.annotation.Config
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.BAKLAVA])
 class ApplicationPermissionTest {
-    private val activity: Activity = mock()
-    private val permissionDialog: PermissionDialog = mock()
-    private val fixture = ApplicationPermission(activity, permissionDialog)
+    private val fragmentManager: FragmentManager = mock()
+    private val activity: FragmentActivity = mock()
+    private val fixture = ApplicationPermission(activity)
 
     @After
     fun tearDown() {
         verifyNoMoreInteractions(activity)
+        verifyNoMoreInteractions(fragmentManager)
     }
 
     @Test
@@ -57,14 +59,11 @@ class ApplicationPermissionTest {
         // validate
         verify(activity).checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         verify(activity, never()).isFinishing
-        verify(
-            activity,
-            never(),
-        ).requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), ApplicationPermission.REQUEST_CODE)
+        verify(activity, never()).supportFragmentManager
     }
 
     @Test
-    fun checkWithActivityFinish() {
+    fun checkWithActivityFinishing() {
         // setup
         whenever(
             activity.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -75,65 +74,44 @@ class ApplicationPermissionTest {
         // validate
         verify(activity).checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         verify(activity).isFinishing
-        verify(
-            activity,
-            never(),
-        ).requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), ApplicationPermission.REQUEST_CODE)
+        verify(activity, never()).supportFragmentManager
     }
 
     @Test
-    fun checkWithRequestPermissions() {
+    fun checkShowsDialogFragment() {
         // setup
         whenever(
             activity.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION),
         ).thenReturn(PackageManager.PERMISSION_DENIED)
         whenever(activity.isFinishing).thenReturn(false)
+        whenever(activity.supportFragmentManager).thenReturn(fragmentManager)
+        whenever(fragmentManager.findFragmentByTag(PermissionDialogFragment.TAG)).thenReturn(null)
         // execute
         fixture.check()
         // validate
         verify(activity).checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         verify(activity).isFinishing
-        verify(permissionDialog).show()
+        verify(activity).supportFragmentManager
+        verify(fragmentManager).findFragmentByTag(PermissionDialogFragment.TAG)
     }
 
     @Test
-    fun grantedWithRequestCode() {
+    fun checkDoesNotShowDialogIfAlreadyShown() {
         // setup
-        val grantResults = intArrayOf(PackageManager.PERMISSION_GRANTED)
+        val existingFragment: PermissionDialogFragment = mock()
+        whenever(
+            activity.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION),
+        ).thenReturn(PackageManager.PERMISSION_DENIED)
+        whenever(activity.isFinishing).thenReturn(false)
+        whenever(activity.supportFragmentManager).thenReturn(fragmentManager)
+        whenever(fragmentManager.findFragmentByTag(PermissionDialogFragment.TAG)).thenReturn(existingFragment)
         // execute
-        val actual = fixture.granted(ApplicationPermission.REQUEST_CODE, grantResults)
+        fixture.check()
         // validate
-        assertThat(actual).isTrue
-    }
-
-    @Test
-    fun grantedWithOtherRequestCode() {
-        // setup
-        val grantResults = intArrayOf(PackageManager.PERMISSION_GRANTED)
-        // execute
-        val actual = fixture.granted(-ApplicationPermission.REQUEST_CODE, grantResults)
-        // validate
-        assertThat(actual).isFalse
-    }
-
-    @Test
-    fun grantedWithNoResults() {
-        // setup
-        val grantResults = intArrayOf()
-        // execute
-        val actual = fixture.granted(ApplicationPermission.REQUEST_CODE, grantResults)
-        // validate
-        assertThat(actual).isFalse
-    }
-
-    @Test
-    fun grantedWithNoPermissionGranted() {
-        // setup
-        val grantResults = intArrayOf(PackageManager.PERMISSION_DENIED)
-        // execute
-        val actual = fixture.granted(ApplicationPermission.REQUEST_CODE, grantResults)
-        // validate
-        assertThat(actual).isFalse
+        verify(activity).checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        verify(activity).isFinishing
+        verify(activity).supportFragmentManager
+        verify(fragmentManager).findFragmentByTag(PermissionDialogFragment.TAG)
     }
 
     @Test

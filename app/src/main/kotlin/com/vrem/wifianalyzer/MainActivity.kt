@@ -97,17 +97,6 @@ class MainActivity :
         drawerNavigation.onConfigurationChanged(newConfig)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (!MainContext.INSTANCE.permissionService.granted(requestCode, grantResults)) {
-            finish()
-        }
-    }
-
     private val largeScreen: Boolean
         get() {
             val configuration = resources.configuration
