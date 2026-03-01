@@ -29,15 +29,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.jjoe64.graphview.GraphView
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 
 @Composable
 fun ChannelGraphContent(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val app = context.applicationContext as WiFiAnalyzerApplication
-    val scannerService = app.scannerService
-    val repository = app.repository
+    val scannerService = MainApplication.scannerService
+    val repository = MainApplication.repository
 
     val wiFiBandValue = repository.stringAsInteger(
         com.vrem.wifianalyzer.R.string.wifi_band_key,
@@ -46,7 +45,7 @@ fun ChannelGraphContent(modifier: Modifier = Modifier) {
     val wiFiBand = WiFiBand.entries.getOrElse(wiFiBandValue) { WiFiBand.GHZ2 }
 
     val graphViews = remember {
-        WiFiBand.entries.associateWith { band -> ChannelGraphView(app, band) }
+        WiFiBand.entries.associateWith { band -> ChannelGraphView(context, band) }
     }
 
     val currentGraphView = graphViews[wiFiBand]

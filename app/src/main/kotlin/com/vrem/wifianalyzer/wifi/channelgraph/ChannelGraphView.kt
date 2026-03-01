@@ -22,8 +22,8 @@ import android.view.View
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.TitleLineGraphSeries
 import com.vrem.util.findOne
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
@@ -69,10 +69,10 @@ internal fun makeDefaultSeries(
 }
 
 internal fun makeGraphViewWrapper(
-    app: WiFiAnalyzerApplication,
+    context: Context,
     wiFiBand: WiFiBand
 ): GraphViewWrapper {
-    val repository = app.repository
+    val repository = MainApplication.repository
     val themeStyle =
         settingsFind(repository, ThemeStyle.entries, R.string.theme_key, ThemeStyle.DARK)
     val graphMaximumY = getGraphMaximumY(repository)
@@ -83,10 +83,11 @@ internal fun makeGraphViewWrapper(
         GraphLegend.HIDE
     )
 
-    val graphView = makeGraphView(app, graphMaximumY, themeStyle, wiFiBand)
+    val graphView = makeGraphView(context, graphMaximumY, themeStyle, wiFiBand)
     val graphViewWrapper = GraphViewWrapper(graphView, channelGraphLegend, themeStyle)
 
-    app.configuration.size = graphViewWrapper.size(graphViewWrapper.calculateGraphType())
+    MainApplication.configuration.size =
+        graphViewWrapper.size(graphViewWrapper.calculateGraphType())
 
     val wiFiChannels = wiFiBand.wiFiChannels.wiFiChannels()
     val minX = wiFiChannels.first().frequency
@@ -99,13 +100,13 @@ internal fun makeGraphViewWrapper(
 }
 
 internal class ChannelGraphView(
-    private val app: WiFiAnalyzerApplication,
+    private val context: Context,
     private val wiFiBand: WiFiBand,
     private val dataManager: DataManager = DataManager(),
-    private val graphViewWrapper: GraphViewWrapper = makeGraphViewWrapper(app, wiFiBand),
+    private val graphViewWrapper: GraphViewWrapper = makeGraphViewWrapper(context, wiFiBand),
 ) : GraphViewNotifier {
     override fun update(wiFiData: WiFiData) {
-        val repository = app.repository
+        val repository = MainApplication.repository
         val predicate = makeOtherPredicate(repository)
         val sortBy = settingsFind(repository, SortBy.entries, R.string.sort_by_key, SortBy.STRENGTH)
         val wiFiDetails = wiFiData.wiFiDetails(predicate, sortBy)
@@ -129,7 +130,10 @@ internal class ChannelGraphView(
 
     fun selected(): Boolean {
         val wiFiBandValue =
-            app.repository.stringAsInteger(R.string.wifi_band_key, WiFiBand.GHZ2.ordinal)
+            MainApplication.repository.stringAsInteger(
+                R.string.wifi_band_key,
+                WiFiBand.GHZ2.ordinal
+            )
         val currentWiFiBand = WiFiBand.entries.getOrElse(wiFiBandValue) { WiFiBand.GHZ2 }
         return wiFiBand == currentWiFiBand
     }

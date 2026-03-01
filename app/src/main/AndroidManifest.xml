@@ -29,7 +29,6 @@
         android:usesPermissionFlags="neverForLocation" />
 
     <application
-        android:name=".WiFiAnalyzerApplication"
         android:allowBackup="true"
         android:fullBackupContent="true"
         android:hardwareAccelerated="true"

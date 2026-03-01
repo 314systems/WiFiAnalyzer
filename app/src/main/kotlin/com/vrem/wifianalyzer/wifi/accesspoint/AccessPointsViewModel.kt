@@ -20,10 +20,10 @@ package com.vrem.wifianalyzer.wifi.accesspoint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.findOne
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.SIZE_MAX
 import com.vrem.wifianalyzer.SIZE_MIN
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE1
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE2
@@ -42,7 +42,6 @@ import kotlin.enums.EnumEntries
 
 class AccessPointsViewModel(application: Application) : AndroidViewModel(application),
     UpdateNotifier {
-    private val app = application as WiFiAnalyzerApplication
     private val repository = Repository(application)
     private val _wiFiDetails = MutableStateFlow<List<WiFiDetail>>(emptyList())
     val wiFiDetails: StateFlow<List<WiFiDetail>> = _wiFiDetails.asStateFlow()
@@ -62,21 +61,21 @@ class AccessPointsViewModel(application: Application) : AndroidViewModel(applica
     val groupByState: StateFlow<GroupBy> = _groupByState.asStateFlow()
 
     init {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.register(this)
-            update(app.scannerService.wiFiData())
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.register(this)
+            update(MainApplication.scannerService.wiFiData())
         }
     }
 
     override fun onCleared() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.unregister(this)
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.unregister(this)
         }
         super.onCleared()
     }
 
     override fun update(wiFiData: WiFiData) {
-        app.configuration.size = type(calculateChildType())
+        MainApplication.configuration.size = type(calculateChildType())
 
         val predicate = makeAccessPointsPredicate(repository)
         val currentGroupBy = readGroupBy()
@@ -96,9 +95,9 @@ class AccessPointsViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun refresh() {
-        if (app.isScannerServiceInitialized) {
+        if (MainApplication.isScannerServiceInitialized) {
             _isRefreshing.value = true
-            app.scannerService.update()
+            MainApplication.scannerService.update()
         }
     }
 
@@ -116,7 +115,7 @@ class AccessPointsViewModel(application: Application) : AndroidViewModel(applica
     private fun calculateChildType(): Int =
         runCatching {
             with(MessageDigest.getInstance("MD5")) {
-                update(app.packageName.toByteArray())
+                update(getApplication<Application>().packageName.toByteArray())
                 val digest: ByteArray = digest()
                 digest.contentHashCode()
             }

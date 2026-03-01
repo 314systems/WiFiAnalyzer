@@ -50,8 +50,8 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val app = application as WiFiAnalyzerApplication
-        app.initScannerService(this, largeScreen)
+        MainApplication.init(applicationContext)
+        MainApplication.initScannerService(applicationContext, this, largeScreen)
 
         installSplashScreen()
 
@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (viewModel.showFilterDialog) {
                     FilterDialog(
-                        filtersAdapter = app.filtersAdapter,
+                        filtersAdapter = MainApplication.filtersAdapter,
                         isAccessPoints = currentMenu == NavigationMenu.ACCESS_POINTS,
                         onApply = { ssid, bands, strengths, securities ->
                             viewModel.applyFilters(ssid, bands, strengths, securities)
@@ -144,10 +144,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun export() {
-        val app = application as WiFiAnalyzerApplication
         val export = Export()
         val wiFiDetails: List<WiFiDetail> =
-            app.scannerService
+            MainApplication.scannerService
                 .wiFiData()
                 .wiFiDetails
         if (wiFiDetails.isEmpty()) {

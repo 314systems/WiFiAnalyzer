@@ -22,8 +22,8 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.defaultCountryCode
 import com.vrem.util.findOne
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.band.WiFiChannel
@@ -60,22 +60,21 @@ data class ChannelRatingItem(
 class ChannelRatingViewModel(application: Application) :
     AndroidViewModel(application),
     UpdateNotifier {
-    private val app = application as WiFiAnalyzerApplication
     private val repository = Repository(application)
     private val channelRating = ChannelRating()
     private val _uiState = MutableStateFlow(ChannelRatingUiState())
     val uiState: StateFlow<ChannelRatingUiState> = _uiState.asStateFlow()
 
     init {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.register(this)
-            update(app.scannerService.wiFiData())
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.register(this)
+            update(MainApplication.scannerService.wiFiData())
         }
     }
 
     override fun onCleared() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.unregister(this)
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.unregister(this)
         }
         super.onCleared()
     }
@@ -111,9 +110,9 @@ class ChannelRatingViewModel(application: Application) :
     }
 
     fun refresh() {
-        if (app.isScannerServiceInitialized) {
+        if (MainApplication.isScannerServiceInitialized) {
             _uiState.update { it.copy(isRefreshing = true) }
-            app.scannerService.update()
+            MainApplication.scannerService.update()
         }
     }
 

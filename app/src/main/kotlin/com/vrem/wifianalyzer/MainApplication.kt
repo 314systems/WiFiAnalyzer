@@ -17,7 +17,6 @@
  */
 package com.vrem.wifianalyzer
 
-import android.app.Application
 import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.Handler
@@ -29,7 +28,7 @@ import com.vrem.wifianalyzer.wifi.manager.WiFiManagerWrapper
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
 import com.vrem.wifianalyzer.wifi.scanner.makeScannerService
 
-class WiFiAnalyzerApplication : Application() {
+object MainApplication {
     lateinit var repository: Repository
         private set
     lateinit var vendorService: VendorService
@@ -48,25 +47,24 @@ class WiFiAnalyzerApplication : Application() {
     lateinit var configuration: Configuration
         private set
 
-    override fun onCreate() {
-        super.onCreate()
-        repository = Repository(this)
-        vendorService = VendorService(resources)
-        val wiFiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+    fun init(context: Context) {
+        if (::repository.isInitialized) return
+        repository = Repository(context)
+        vendorService = VendorService(context.resources)
+        val wiFiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
         wiFiManagerWrapper = WiFiManagerWrapper(wiFiManager)
         filtersAdapter = FiltersAdapter(repository)
-        configuration = Configuration(false) // Default, will be updated by MainActivity
+        configuration = Configuration(false)
     }
 
-    fun initScannerService(activity: MainActivity, largeScreen: Boolean) {
+    fun initScannerService(context: Context, activity: MainActivity, largeScreen: Boolean) {
         configuration = Configuration(largeScreen)
-        // Re-initialize WiFiManagerWrapper with activity context to handle settings navigation
-        val wiFiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val wiFiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
         wiFiManagerWrapper = WiFiManagerWrapper(wiFiManager, activity::startWiFiSettings)
 
         if (_scannerService == null) {
             _scannerService = makeScannerService(
-                this,
+                context,
                 wiFiManagerWrapper,
                 Handler(Looper.getMainLooper()),
                 repository,

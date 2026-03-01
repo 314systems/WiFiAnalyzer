@@ -22,8 +22,8 @@ import android.app.Application
 import android.net.wifi.WifiInfo
 import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.findOne
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.permission.PermissionService
 import com.vrem.wifianalyzer.settings.Repository
@@ -40,7 +40,6 @@ import kotlin.enums.EnumEntries
 
 class MainConnectionViewModel(application: Application) : AndroidViewModel(application),
     UpdateNotifier {
-    private val app = application as WiFiAnalyzerApplication
     private val repository = Repository(application)
     private val permissionService = PermissionService(application)
     private val _state = MutableStateFlow(MainConnectionState())
@@ -50,14 +49,14 @@ class MainConnectionViewModel(application: Application) : AndroidViewModel(appli
     val selectedWiFiDetail: StateFlow<WiFiDetail?> = _selectedWiFiDetail.asStateFlow()
 
     init {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.register(this)
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.register(this)
         }
     }
 
     override fun onCleared() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.unregister(this)
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.unregister(this)
         }
         super.onCleared()
     }
@@ -88,7 +87,11 @@ class MainConnectionViewModel(application: Application) : AndroidViewModel(appli
         }
 
         val wifiSupportText =
-            if (wiFiBand.available(app)) null else app.resources.getString(wiFiBand.textResource)
+            if (wiFiBand.available(MainApplication.wiFiManagerWrapper)) {
+                null
+            } else {
+                getApplication<Application>().resources.getString(wiFiBand.textResource)
+            }
 
         val selectedMenu = settingsFind(
             NavigationMenu.entries,
@@ -96,7 +99,7 @@ class MainConnectionViewModel(application: Application) : AndroidViewModel(appli
             NavigationMenu.ACCESS_POINTS
         )
         val isScannerRegistered = selectedMenu.registered()
-        val isScanThrottleEnabled = app.wiFiManagerWrapper.isScanThrottleEnabled()
+        val isScanThrottleEnabled = MainApplication.wiFiManagerWrapper.isScanThrottleEnabled()
         val wiFiDetailsEmpty = wiFiData.wiFiDetails.isEmpty()
         val isPermissionEnabled = permissionService.enabled()
 

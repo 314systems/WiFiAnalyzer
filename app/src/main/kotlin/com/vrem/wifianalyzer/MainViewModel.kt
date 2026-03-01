@@ -46,9 +46,8 @@ import java.util.Locale
 import kotlin.enums.EnumEntries
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val app = application as WiFiAnalyzerApplication
-    private val repository = app.repository
-    private val filtersAdapter = app.filtersAdapter
+    private val repository = MainApplication.repository
+    private val filtersAdapter = MainApplication.filtersAdapter
     private val permissionService = PermissionService(application)
 
     private val _currentMenu = MutableStateFlow(readSelectedMenu())
@@ -82,9 +81,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), readKeepScreenOn())
 
     fun update() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.update()
-            _isScannerRunning.value = app.scannerService.running()
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.update()
+            _isScannerRunning.value = MainApplication.scannerService.running()
         }
         _isFilterActive.value =
             filtersAdapter.isActive(currentMenu.value == NavigationMenu.ACCESS_POINTS)
@@ -118,8 +117,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleScanner() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.toggle()
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.toggle()
             update()
         }
     }
@@ -158,24 +157,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun pauseScanner() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.pause()
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.pause()
             update()
         }
     }
 
     fun resumeScanner() {
-        if (app.isScannerServiceInitialized) {
+        if (MainApplication.isScannerServiceInitialized) {
             if (permissionService.permissionGranted()) {
-                app.scannerService.resume()
+                MainApplication.scannerService.resume()
             }
             update()
         }
     }
 
     fun stopScanner() {
-        if (app.isScannerServiceInitialized) {
-            app.scannerService.stop()
+        if (MainApplication.isScannerServiceInitialized) {
+            MainApplication.scannerService.stop()
             update()
         }
     }

@@ -20,8 +20,8 @@ package com.vrem.wifianalyzer.wifi.channelavailable
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.defaultCountryCode
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.band.WiFiChannelCountry
@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.update
 import java.util.Locale
 
 class ChannelAvailableViewModel(application: Application) : AndroidViewModel(application) {
-    private val app = application as WiFiAnalyzerApplication
     private val repository = Repository(application)
     private val _uiState = MutableStateFlow(ChannelAvailableState())
     val uiState: StateFlow<ChannelAvailableState> = _uiState.asStateFlow()
@@ -48,10 +47,10 @@ class ChannelAvailableViewModel(application: Application) : AndroidViewModel(app
         val currentLocale = Locale.getDefault()
 
         val bands = WiFiBand.entries
-            .filter { it.available(app) }
+            .filter { it.available(MainApplication.wiFiManagerWrapper) }
             .map { band ->
                 BandState(
-                    title = app.resources.getString(band.textResource),
+                    title = getApplication<Application>().resources.getString(band.textResource),
                     widths = WiFiWidth.entries.mapNotNull { width ->
                         val channels = band.wiFiChannels.availableChannels(width, band, countryCode)
                         if (channels.isNotEmpty()) {

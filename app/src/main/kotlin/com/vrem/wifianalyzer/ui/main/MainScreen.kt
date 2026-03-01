@@ -30,10 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
+import com.vrem.wifianalyzer.MainApplication
 import com.vrem.wifianalyzer.about.AboutScreen
 import com.vrem.wifianalyzer.about.AboutViewModel
 import com.vrem.wifianalyzer.navigation.NavigationMenu
@@ -143,9 +142,6 @@ private fun MainContentArea(
     currentMenu: NavigationMenu,
     onShowPopup: (WiFiDetail) -> Unit
 ) {
-    val context = LocalContext.current
-    val app = context.applicationContext as WiFiAnalyzerApplication
-
     when (currentMenu) {
         NavigationMenu.ACCESS_POINTS -> AccessPointsContent(onShowPopup = onShowPopup)
         NavigationMenu.CHANNEL_GRAPH -> ChannelGraphContent()
@@ -157,7 +153,7 @@ private fun MainContentArea(
             ChannelAvailableContent(state = uiState)
         }
 
-        NavigationMenu.VENDORS -> VendorView(vendorService = app.vendorService)
+        NavigationMenu.VENDORS -> VendorView(vendorService = MainApplication.vendorService)
         NavigationMenu.SETTINGS -> SettingsScreen(viewModel = viewModel<SettingsViewModel>())
         NavigationMenu.ABOUT -> {
             val aboutViewModel = viewModel<AboutViewModel>()
