@@ -29,11 +29,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.model.WiFiIdentifier
@@ -43,15 +41,11 @@ import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 fun AccessPointsContent(
     viewModel: AccessPointsViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val app = context.applicationContext as WiFiAnalyzerApplication
     val wiFiDetails by viewModel.wiFiDetails.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val expandedGroups by viewModel.expandedGroups.collectAsStateWithLifecycle()
-
-    val settings = app.settings
-    val viewType = settings.accessPointView()
-    val groupBy = settings.groupBy()
+    val viewType by viewModel.accessPointView.collectAsStateWithLifecycle()
+    val groupBy by viewModel.groupByState.collectAsStateWithLifecycle()
 
     var selectedWiFiDetail by remember { mutableStateOf<WiFiDetail?>(null) }
 

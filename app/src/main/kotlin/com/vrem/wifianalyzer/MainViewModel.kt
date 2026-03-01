@@ -23,32 +23,40 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.SPACE_SEPARATOR
+import com.vrem.util.defaultLanguageTag
+import com.vrem.util.findByLanguageTag
+import com.vrem.util.findOne
 import com.vrem.util.specialTrim
+import com.vrem.wifianalyzer.navigation.MAIN_NAVIGATION
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.permission.PermissionService
+import com.vrem.wifianalyzer.settings.Repository
+import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.model.Security
 import com.vrem.wifianalyzer.wifi.model.Strength
+import java.util.Locale
+import kotlin.enums.EnumEntries
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as WiFiAnalyzerApplication
-    private val settings = app.settings
+    private val repository = Repository(application)
     private val filtersAdapter = app.filtersAdapter
     private val permissionService = PermissionService(application)
 
-    var currentMenu by mutableStateOf(settings.selectedMenu())
+    var currentMenu by mutableStateOf(readSelectedMenu())
         private set
     var isScannerRunning by mutableStateOf(false)
         private set
     var isFilterActive by mutableStateOf(false)
         private set
-    var currentWiFiBand by mutableStateOf(settings.wiFiBand())
+    var currentWiFiBand by mutableStateOf(readWiFiBand())
         private set
     var showFilterDialog by mutableStateOf(false)
         set
-    var themeStyle by mutableStateOf(settings.themeStyle())
+    var themeStyle by mutableStateOf(readThemeStyle())
         private set
-    var languageLocale by mutableStateOf(settings.languageLocale())
+    var languageLocale by mutableStateOf(readLanguageLocale())
         private set
 
     fun update() {
@@ -57,14 +65,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             isScannerRunning = app.scannerService.running()
         }
         isFilterActive = filtersAdapter.isActive(currentMenu == NavigationMenu.ACCESS_POINTS)
-        currentWiFiBand = settings.wiFiBand()
-        themeStyle = settings.themeStyle()
-        languageLocale = settings.languageLocale()
+        currentWiFiBand = readWiFiBand()
+        themeStyle = readThemeStyle()
+        languageLocale = readLanguageLocale()
     }
 
     fun shouldReload(): Boolean {
-        val newTheme = settings.themeStyle()
-        val newLocale = settings.languageLocale()
+        val newTheme = readThemeStyle()
+        val newLocale = readLanguageLocale()
         return (themeStyle != newTheme || languageLocale != newLocale).also {
             if (it) {
                 themeStyle = newTheme
@@ -75,12 +83,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectMenu(menu: NavigationMenu) {
         currentMenu = menu
-        settings.saveSelectedMenu(menu)
+        saveSelectedMenu(menu)
         update()
     }
 
     fun handleBack(onFinish: () -> Unit) {
-        val selectedMenu = settings.selectedMenu()
+        val selectedMenu = readSelectedMenu()
         if (currentMenu == selectedMenu) {
             onFinish()
         } else {
@@ -96,7 +104,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateWiFiBand(band: WiFiBand) {
-        settings.wiFiBand(band)
+        repository.save(R.string.wifi_band_key, band.ordinal)
         update()
     }
 
@@ -151,4 +159,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             update()
         }
     }
+
+    // region Getters/Setters (Logic moved from Settings.kt)
+    private fun readSelectedMenu(): NavigationMenu =
+        settingsFind(
+            NavigationMenu.entries,
+            R.string.selected_menu_key,
+            NavigationMenu.ACCESS_POINTS
+        )
+
+    private fun saveSelectedMenu(navigationMenu: NavigationMenu) {
+        if (MAIN_NAVIGATION.contains(navigationMenu)) {
+            repository.save(R.string.selected_menu_key, navigationMenu.ordinal)
+        }
+    }
+
+    private fun readWiFiBand(): WiFiBand =
+        settingsFind(WiFiBand.entries, R.string.wifi_band_key, WiFiBand.GHZ2)
+
+    private fun readThemeStyle(): ThemeStyle =
+        settingsFind(ThemeStyle.entries, R.string.theme_key, ThemeStyle.DARK)
+
+    private fun readLanguageLocale(): Locale {
+        val languageTag = repository.string(R.string.language_key, defaultLanguageTag())
+        return findByLanguageTag(languageTag)
+    }
+
+    private fun <T : Enum<T>> settingsFind(
+        values: EnumEntries<T>,
+        key: Int,
+        defaultValue: T,
+    ): T {
+        val value = repository.stringAsInteger(key, defaultValue.ordinal)
+        return findOne(values, value, defaultValue)
+    }
+    // endregion
 }

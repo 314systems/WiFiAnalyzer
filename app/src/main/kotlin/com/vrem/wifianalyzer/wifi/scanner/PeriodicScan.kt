@@ -18,12 +18,13 @@
 package com.vrem.wifianalyzer.wifi.scanner
 
 import android.os.Handler
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.settings.Repository
 
 internal class PeriodicScan(
     private val scanner: ScannerService,
     private val handler: Handler,
-    private val settings: Settings,
+    private val repository: Repository,
 ) : Runnable {
     internal var running = false
 
@@ -37,7 +38,7 @@ internal class PeriodicScan(
     }
 
     fun startWithDelay() {
-        nextRun(settings.scanSpeed() * DELAY_INTERVAL)
+        nextRun(scanSpeed() * DELAY_INTERVAL)
     }
 
     override fun run() {
@@ -51,8 +52,15 @@ internal class PeriodicScan(
         running = true
     }
 
+    private fun scanSpeed(): Int =
+        repository.stringAsInteger(
+            R.string.scan_speed_key,
+            repository.stringAsInteger(R.string.scan_speed_default, SCAN_SPEED_DEFAULT),
+        )
+
     companion object {
         private const val DELAY_INITIAL = 1L
         const val DELAY_INTERVAL = 1000L
+        private const val SCAN_SPEED_DEFAULT = 5
     }
 }

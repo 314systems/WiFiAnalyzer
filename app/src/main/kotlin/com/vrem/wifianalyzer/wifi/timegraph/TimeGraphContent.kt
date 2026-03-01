@@ -36,8 +36,13 @@ fun TimeGraphContent(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val app = context.applicationContext as WiFiAnalyzerApplication
     val scannerService = app.scannerService
-    val settings = app.settings
-    val wiFiBand = settings.wiFiBand()
+    val repository = app.repository
+
+    val wiFiBandValue = repository.stringAsInteger(
+        com.vrem.wifianalyzer.R.string.wifi_band_key,
+        WiFiBand.GHZ2.ordinal
+    )
+    val wiFiBand = WiFiBand.entries.getOrElse(wiFiBandValue) { WiFiBand.GHZ2 }
 
     val graphViews = remember {
         WiFiBand.entries.associateWith { band -> TimeGraphView(app, band) }

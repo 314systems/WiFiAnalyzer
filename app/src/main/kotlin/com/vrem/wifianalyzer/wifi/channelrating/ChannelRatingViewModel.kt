@@ -20,7 +20,11 @@ package com.vrem.wifianalyzer.wifi.channelrating
 import android.app.Application
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
+import com.vrem.util.defaultCountryCode
+import com.vrem.util.findOne
+import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.WiFiAnalyzerApplication
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.band.WiFiChannel
 import com.vrem.wifianalyzer.wifi.model.ChannelAPCount
@@ -35,6 +39,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.enums.EnumEntries
 
 @Immutable
 data class ChannelRatingUiState(
@@ -56,6 +61,7 @@ class ChannelRatingViewModel(application: Application) :
     AndroidViewModel(application),
     UpdateNotifier {
     private val app = application as WiFiAnalyzerApplication
+    private val repository = Repository(application)
     private val channelRating = ChannelRating()
     private val _uiState = MutableStateFlow(ChannelRatingUiState())
     val uiState: StateFlow<ChannelRatingUiState> = _uiState.asStateFlow()
@@ -75,9 +81,8 @@ class ChannelRatingViewModel(application: Application) :
     }
 
     override fun update(wiFiData: WiFiData) {
-        val settings = app.settings
-        val wiFiBand = settings.wiFiBand()
-        val countryCode = settings.countryCode()
+        val wiFiBand = readWiFiBand()
+        val countryCode = repository.string(R.string.country_code_key, defaultCountryCode())
         val wiFiChannels = wiFiBand.wiFiChannels.availableChannels(wiFiBand, countryCode)
         val predicate = wiFiBand.predicate()
         val wiFiDetails = wiFiData.wiFiDetails(predicate, SortBy.STRENGTH)
@@ -110,5 +115,17 @@ class ChannelRatingViewModel(application: Application) :
             _uiState.update { it.copy(isRefreshing = true) }
             app.scannerService.update()
         }
+    }
+
+    private fun readWiFiBand(): WiFiBand =
+        settingsFind(WiFiBand.entries, R.string.wifi_band_key, WiFiBand.GHZ2)
+
+    private fun <T : Enum<T>> settingsFind(
+        values: EnumEntries<T>,
+        key: Int,
+        defaultValue: T,
+    ): T {
+        val value = repository.stringAsInteger(key, defaultValue.ordinal)
+        return findOne(values, value, defaultValue)
     }
 }

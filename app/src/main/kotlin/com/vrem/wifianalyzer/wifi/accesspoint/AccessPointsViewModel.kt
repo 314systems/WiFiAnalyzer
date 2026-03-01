@@ -19,13 +19,17 @@ package com.vrem.wifianalyzer.wifi.accesspoint
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.vrem.util.findOne
+import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.SIZE_MAX
 import com.vrem.wifianalyzer.SIZE_MIN
 import com.vrem.wifianalyzer.WiFiAnalyzerApplication
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE1
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE2
 import com.vrem.wifianalyzer.wifi.graphutils.TYPE3
 import com.vrem.wifianalyzer.wifi.model.GroupBy
+import com.vrem.wifianalyzer.wifi.model.SortBy
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.predicate.makeAccessPointsPredicate
@@ -34,10 +38,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.security.MessageDigest
+import kotlin.enums.EnumEntries
 
 class AccessPointsViewModel(application: Application) : AndroidViewModel(application),
     UpdateNotifier {
     private val app = application as WiFiAnalyzerApplication
+    private val repository = Repository(application)
     private val _wiFiDetails = MutableStateFlow<List<WiFiDetail>>(emptyList())
     val wiFiDetails: StateFlow<List<WiFiDetail>> = _wiFiDetails.asStateFlow()
 
@@ -48,6 +54,12 @@ class AccessPointsViewModel(application: Application) : AndroidViewModel(applica
     val expandedGroups: StateFlow<Set<String>> = _expandedGroups.asStateFlow()
 
     private var groupBy: GroupBy = GroupBy.NONE
+
+    private val _accessPointView = MutableStateFlow(readAccessPointView())
+    val accessPointView: StateFlow<AccessPointViewType> = _accessPointView.asStateFlow()
+
+    private val _groupByState = MutableStateFlow(readGroupBy())
+    val groupByState: StateFlow<GroupBy> = _groupByState.asStateFlow()
 
     init {
         if (app.isScannerServiceInitialized) {
@@ -66,16 +78,18 @@ class AccessPointsViewModel(application: Application) : AndroidViewModel(applica
     override fun update(wiFiData: WiFiData) {
         app.configuration.size = type(calculateChildType())
 
-        val settings = app.settings
-        val predicate = makeAccessPointsPredicate(settings)
-        val currentGroupBy = settings.groupBy()
+        val predicate = makeAccessPointsPredicate(repository)
+        val currentGroupBy = readGroupBy()
+        val currentSortBy = readSortBy()
 
         if (currentGroupBy != groupBy) {
             _expandedGroups.value = emptySet()
             groupBy = currentGroupBy
+            _groupByState.value = currentGroupBy
         }
+        _accessPointView.value = readAccessPointView()
 
-        val details = wiFiData.wiFiDetails(predicate, settings.sortBy(), settings.groupBy())
+        val details = wiFiData.wiFiDetails(predicate, currentSortBy, currentGroupBy)
         _wiFiDetails.value = details
 
         _isRefreshing.value = false
@@ -109,4 +123,26 @@ class AccessPointsViewModel(application: Application) : AndroidViewModel(applica
         }.getOrDefault(TYPE1)
 
     private fun type(value: Int): Int = if (value == TYPE1 || value == TYPE2 || value == TYPE3) SIZE_MAX else SIZE_MIN
+
+    private fun readGroupBy(): GroupBy =
+        settingsFind(GroupBy.entries, R.string.group_by_key, GroupBy.NONE)
+
+    private fun readSortBy(): SortBy =
+        settingsFind(SortBy.entries, R.string.sort_by_key, SortBy.STRENGTH)
+
+    private fun readAccessPointView(): AccessPointViewType =
+        settingsFind(
+            AccessPointViewType.entries,
+            R.string.ap_view_key,
+            AccessPointViewType.COMPLETE
+        )
+
+    private fun <T : Enum<T>> settingsFind(
+        values: EnumEntries<T>,
+        key: Int,
+        defaultValue: T,
+    ): T {
+        val value = repository.stringAsInteger(key, defaultValue.ordinal)
+        return findOne(values, value, defaultValue)
+    }
 }

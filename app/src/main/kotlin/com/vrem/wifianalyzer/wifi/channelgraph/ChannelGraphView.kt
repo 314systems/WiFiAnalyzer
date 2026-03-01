@@ -21,21 +21,24 @@ import android.content.Context
 import android.view.View
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.TitleLineGraphSeries
+import com.vrem.util.findOne
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.WiFiAnalyzerApplication
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.graphutils.GraphDataPoint
+import com.vrem.wifianalyzer.wifi.graphutils.GraphLegend
 import com.vrem.wifianalyzer.wifi.graphutils.GraphViewBuilder
 import com.vrem.wifianalyzer.wifi.graphutils.GraphViewNotifier
 import com.vrem.wifianalyzer.wifi.graphutils.GraphViewWrapper
 import com.vrem.wifianalyzer.wifi.graphutils.MIN_Y
 import com.vrem.wifianalyzer.wifi.graphutils.THICKNESS_INVISIBLE
 import com.vrem.wifianalyzer.wifi.graphutils.transparent
+import com.vrem.wifianalyzer.wifi.model.SortBy
 import com.vrem.wifianalyzer.wifi.model.WiFiData
-import com.vrem.wifianalyzer.wifi.predicate.Predicate
 import com.vrem.wifianalyzer.wifi.predicate.makeOtherPredicate
+import kotlin.enums.EnumEntries
 
 internal fun makeGraphView(
     context: Context,
@@ -69,10 +72,19 @@ internal fun makeGraphViewWrapper(
     app: WiFiAnalyzerApplication,
     wiFiBand: WiFiBand
 ): GraphViewWrapper {
-    val settings = app.settings
-    val themeStyle = settings.themeStyle()
-    val graphView = makeGraphView(app, settings.graphMaximumY(), themeStyle, wiFiBand)
-    val graphViewWrapper = GraphViewWrapper(graphView, settings.channelGraphLegend(), themeStyle)
+    val repository = app.repository
+    val themeStyle =
+        settingsFind(repository, ThemeStyle.entries, R.string.theme_key, ThemeStyle.DARK)
+    val graphMaximumY = getGraphMaximumY(repository)
+    val channelGraphLegend = settingsFind(
+        repository,
+        GraphLegend.entries,
+        R.string.channel_graph_legend_key,
+        GraphLegend.HIDE
+    )
+
+    val graphView = makeGraphView(app, graphMaximumY, themeStyle, wiFiBand)
+    val graphViewWrapper = GraphViewWrapper(graphView, channelGraphLegend, themeStyle)
 
     app.configuration.size = graphViewWrapper.size(graphViewWrapper.calculateGraphType())
 
@@ -93,23 +105,49 @@ internal class ChannelGraphView(
     private val graphViewWrapper: GraphViewWrapper = makeGraphViewWrapper(app, wiFiBand),
 ) : GraphViewNotifier {
     override fun update(wiFiData: WiFiData) {
-        val settings = app.settings
-        val predicate = predicate(settings)
-        val wiFiDetails = wiFiData.wiFiDetails(predicate, settings.sortBy())
+        val repository = app.repository
+        val predicate = makeOtherPredicate(repository)
+        val sortBy = settingsFind(repository, SortBy.entries, R.string.sort_by_key, SortBy.STRENGTH)
+        val wiFiDetails = wiFiData.wiFiDetails(predicate, sortBy)
         val newSeries = dataManager.newSeries(wiFiDetails)
+        val graphMaximumY = getGraphMaximumY(repository)
+        val channelGraphLegend = settingsFind(
+            repository,
+            GraphLegend.entries,
+            R.string.channel_graph_legend_key,
+            GraphLegend.HIDE
+        )
 
-        dataManager.addSeriesData(graphViewWrapper, newSeries, settings.graphMaximumY())
+        dataManager.addSeriesData(graphViewWrapper, newSeries, graphMaximumY)
 
         graphViewWrapper.apply {
             removeSeries(newSeries)
-            updateLegend(settings.channelGraphLegend())
+            updateLegend(channelGraphLegend)
             visibility(if (selected()) View.VISIBLE else View.GONE)
         }
     }
 
-    fun selected(): Boolean = wiFiBand == app.settings.wiFiBand()
-
-    fun predicate(settings: Settings): Predicate = makeOtherPredicate(settings)
+    fun selected(): Boolean {
+        val wiFiBandValue =
+            app.repository.stringAsInteger(R.string.wifi_band_key, WiFiBand.GHZ2.ordinal)
+        val currentWiFiBand = WiFiBand.entries.getOrElse(wiFiBandValue) { WiFiBand.GHZ2 }
+        return wiFiBand == currentWiFiBand
+    }
 
     override fun graphView(): GraphView = graphViewWrapper.graphView
+}
+
+private fun <T : Enum<T>> settingsFind(
+    repository: Repository,
+    values: EnumEntries<T>,
+    key: Int,
+    defaultValue: T,
+): T {
+    val value = repository.stringAsInteger(key, defaultValue.ordinal)
+    return findOne(values, value, defaultValue)
+}
+
+private fun getGraphMaximumY(repository: Repository): Int {
+    val defaultValue = repository.stringAsInteger(R.string.graph_maximum_y_default, 2)
+    return repository.stringAsInteger(R.string.graph_maximum_y_key, defaultValue) * -10
 }

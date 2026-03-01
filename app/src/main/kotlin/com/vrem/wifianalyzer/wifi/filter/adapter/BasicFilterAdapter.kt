@@ -17,7 +17,7 @@
  */
 package com.vrem.wifianalyzer.wifi.filter.adapter
 
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.settings.Repository
 
 abstract class BasicFilterAdapter<T>(
     open var selections: Set<T>,
@@ -30,5 +30,5 @@ abstract class BasicFilterAdapter<T>(
 
     abstract fun reset()
 
-    abstract fun save(settings: Settings)
+    abstract fun save(repository: Repository)
 }

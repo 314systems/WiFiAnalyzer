@@ -17,7 +17,8 @@
  */
 package com.vrem.wifianalyzer.wifi.filter.adapter
 
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.settings.Repository
 
 class SSIDAdapter(
     selections: Set<String>,
@@ -34,5 +35,6 @@ class SSIDAdapter(
         selections = setOf()
     }
 
-    override fun save(settings: Settings): Unit = settings.saveSSIDs(selections)
+    override fun save(repository: Repository): Unit =
+        repository.saveStringSet(R.string.filter_ssid_key, selections)
 }

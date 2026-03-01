@@ -23,7 +23,6 @@ import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.Looper
 import com.vrem.wifianalyzer.settings.Repository
-import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.vendor.model.VendorService
 import com.vrem.wifianalyzer.wifi.filter.adapter.FiltersAdapter
 import com.vrem.wifianalyzer.wifi.manager.WiFiManagerWrapper
@@ -31,7 +30,7 @@ import com.vrem.wifianalyzer.wifi.scanner.ScannerService
 import com.vrem.wifianalyzer.wifi.scanner.makeScannerService
 
 class WiFiAnalyzerApplication : Application() {
-    lateinit var settings: Settings
+    lateinit var repository: Repository
         private set
     lateinit var vendorService: VendorService
         private set
@@ -51,11 +50,11 @@ class WiFiAnalyzerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        settings = Settings(Repository(this))
+        repository = Repository(this)
         vendorService = VendorService(resources)
         val wiFiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
         wiFiManagerWrapper = WiFiManagerWrapper(wiFiManager)
-        filtersAdapter = FiltersAdapter(settings)
+        filtersAdapter = FiltersAdapter(repository)
         configuration = Configuration(false) // Default, will be updated by MainActivity
     }
 
@@ -70,7 +69,7 @@ class WiFiAnalyzerApplication : Application() {
                 this,
                 wiFiManagerWrapper,
                 Handler(Looper.getMainLooper()),
-                settings,
+                repository,
                 configuration
             )
         }

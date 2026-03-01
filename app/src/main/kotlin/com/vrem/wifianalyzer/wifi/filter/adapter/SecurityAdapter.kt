@@ -17,13 +17,15 @@
  */
 package com.vrem.wifianalyzer.wifi.filter.adapter
 
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.util.ordinals
+import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.model.Security
 
 class SecurityAdapter(
     selections: Set<Security>,
 ) : EnumFilterAdapter<Security>(selections, Security.entries) {
-    override fun save(settings: Settings) {
-        settings.saveSecurities(selections)
+    override fun save(repository: Repository) {
+        repository.saveStringSet(R.string.filter_security_key, ordinals(selections))
     }
 }

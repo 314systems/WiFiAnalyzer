@@ -21,7 +21,8 @@ import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import com.vrem.util.ssid
 import com.vrem.wifianalyzer.Configuration
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.settings.Repository
 
 internal class CacheResult(
     val scanResult: ScanResult,
@@ -34,7 +35,7 @@ internal data class CacheKey(
 )
 
 internal class Cache(
-    private val settings: Settings,
+    private val repository: Repository,
     private val configuration: Configuration,
 ) {
     private val scanResults: ArrayDeque<List<ScanResult>> = ArrayDeque(MAXIMUM)
@@ -64,10 +65,10 @@ internal class Cache(
 
     fun size(): Int =
         if (sizeAvailable) {
-            if (settings.cacheOff()) {
+            if (cacheOff()) {
                 MINIMUM
             } else {
-                with(settings.scanSpeed()) {
+                with(scanSpeed()) {
                     when {
                         this < 2 -> MAXIMUM
                         this < 5 -> MAXIMUM - 1
@@ -99,6 +100,18 @@ internal class Cache(
 
     private val sizeAvailable: Boolean get() = configuration.sizeAvailable
 
+    private fun cacheOff(): Boolean =
+        repository.boolean(
+            R.string.cache_off_key,
+            repository.resourceBoolean(R.bool.cache_off_default)
+        )
+
+    private fun scanSpeed(): Int =
+        repository.stringAsInteger(
+            R.string.scan_speed_key,
+            repository.stringAsInteger(R.string.scan_speed_default, SCAN_SPEED_DEFAULT),
+        )
+
     companion object {
         private const val MINIMUM: Int = 1
         private const val MAXIMUM: Int = 4
@@ -108,5 +121,6 @@ internal class Cache(
         private const val FACTOR: Int = 3
         private const val DENOMINATOR: Int = 2
         private const val COUNT_MIN: Int = 2
+        private const val SCAN_SPEED_DEFAULT = 5
     }
 }

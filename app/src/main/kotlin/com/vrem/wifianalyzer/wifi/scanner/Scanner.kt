@@ -17,14 +17,16 @@
  */
 package com.vrem.wifianalyzer.wifi.scanner
 
+import com.vrem.util.buildMinVersionQ
+import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.permission.PermissionService
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.manager.WiFiManagerWrapper
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 
 internal class Scanner(
     val wiFiManagerWrapper: WiFiManagerWrapper,
-    val settings: Settings,
+    val repository: Repository,
     val permissionService: PermissionService,
     val transformer: Transformer,
 ) : ScannerService {
@@ -71,7 +73,7 @@ internal class Scanner(
     override fun stop() {
         periodicScan.stop()
         updateNotifiers.clear()
-        if (settings.wiFiOffOnExit()) {
+        if (wiFiOffOnExit()) {
             wiFiManagerWrapper.disableWiFi()
         }
         scanResultsReceiver.unregister()
@@ -85,4 +87,14 @@ internal class Scanner(
         }
 
     fun registered(): Int = updateNotifiers.size
+
+    private fun wiFiOffOnExit(): Boolean =
+        if (buildMinVersionQ()) {
+            false
+        } else {
+            repository.boolean(
+                R.string.wifi_off_on_exit_key,
+                repository.resourceBoolean(R.bool.wifi_off_on_exit_default),
+            )
+        }
 }

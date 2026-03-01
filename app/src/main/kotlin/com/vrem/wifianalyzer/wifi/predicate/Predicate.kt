@@ -17,7 +17,10 @@
  */
 package com.vrem.wifianalyzer.wifi.predicate
 
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.util.findSet
+import com.vrem.util.ordinals
+import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.model.SSID
 import com.vrem.wifianalyzer.wifi.model.Security
@@ -64,17 +67,51 @@ internal fun <T : Enum<T>> makePredicate(
     }
 
 private fun predicates(
-    settings: Settings,
+    repository: Repository,
     wiFiBands: Set<WiFiBand>,
 ): List<Predicate> =
     listOf(
-        settings.findSSIDs().ssidPredicate(),
+        repository.stringSet(R.string.filter_ssid_key, setOf()).ssidPredicate(),
         makePredicate(WiFiBand.entries, wiFiBands) { wiFiBand -> wiFiBand.predicate() },
-        makePredicate(Strength.entries, settings.findStrengths()) { strength -> strength.predicate() },
-        makePredicate(Security.entries, settings.findSecurities()) { security -> security.predicate() },
+        makePredicate(
+            Strength.entries,
+            settingsFindSet(
+                repository,
+                Strength.entries,
+                R.string.filter_strength_key,
+                Strength.FOUR
+            )
+        ) { strength -> strength.predicate() },
+        makePredicate(
+            Security.entries,
+            settingsFindSet(
+                repository,
+                Security.entries,
+                R.string.filter_security_key,
+                Security.NONE
+            )
+        ) { security -> security.predicate() },
     )
 
-fun makeAccessPointsPredicate(settings: Settings): Predicate =
-    predicates(settings, settings.findWiFiBands()).allPredicate()
+fun makeAccessPointsPredicate(repository: Repository): Predicate =
+    predicates(
+        repository,
+        settingsFindSet(repository, WiFiBand.entries, R.string.filter_wifi_band_key, WiFiBand.GHZ2)
+    ).allPredicate()
 
-fun makeOtherPredicate(settings: Settings): Predicate = predicates(settings, setOf(settings.wiFiBand())).allPredicate()
+fun makeOtherPredicate(repository: Repository): Predicate {
+    val wiFiBandValue = repository.stringAsInteger(R.string.wifi_band_key, WiFiBand.GHZ2.ordinal)
+    val wiFiBand = WiFiBand.entries.getOrElse(wiFiBandValue) { WiFiBand.GHZ2 }
+    return predicates(repository, setOf(wiFiBand)).allPredicate()
+}
+
+private fun <T : Enum<T>> settingsFindSet(
+    repository: Repository,
+    values: EnumEntries<T>,
+    key: Int,
+    defaultValue: T,
+): Set<T> {
+    val ordinalDefault = ordinals(values)
+    val ordinalSaved = repository.stringSet(key, ordinalDefault)
+    return findSet(values, ordinalSaved, defaultValue)
+}

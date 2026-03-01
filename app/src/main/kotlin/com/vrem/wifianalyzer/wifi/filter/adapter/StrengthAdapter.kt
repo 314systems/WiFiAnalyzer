@@ -17,8 +17,9 @@
  */
 package com.vrem.wifianalyzer.wifi.filter.adapter
 
+import com.vrem.util.ordinals
 import com.vrem.wifianalyzer.R
-import com.vrem.wifianalyzer.settings.Settings
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.wifi.model.Strength
 
 class StrengthAdapter(
@@ -27,5 +28,6 @@ class StrengthAdapter(
     override fun color(selection: Strength): Int =
         if (selections.contains(selection)) selection.colorResource else R.color.regular
 
-    override fun save(settings: Settings): Unit = settings.saveStrengths(selections)
+    override fun save(repository: Repository): Unit =
+        repository.saveStringSet(R.string.filter_strength_key, ordinals(selections))
 }
