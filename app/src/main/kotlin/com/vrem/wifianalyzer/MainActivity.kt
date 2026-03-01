@@ -24,31 +24,29 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.DisposableEffect
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.vrem.util.createContext
 import com.vrem.util.defaultLanguageTag
 import com.vrem.util.findByLanguageTag
-import com.vrem.util.findOne
 import com.vrem.wifianalyzer.export.Export
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
-import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.main.MainScreen
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
-import kotlin.enums.EnumEntries
 import android.provider.Settings as AndroidSettings
 
 class MainActivity :
     AppCompatActivity(),
     OnSharedPreferenceChangeListener {
-    private lateinit var repository: Repository
     private val viewModel: MainViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
@@ -62,13 +60,22 @@ class MainActivity :
         val app = application as WiFiAnalyzerApplication
         app.initScannerService(this, largeScreen)
 
-        repository = app.repository
-        getThemeStyle().setTheme(this)
+        viewModel.themeStyle.setTheme(this)
 
         super.onCreate(savedInstanceState)
         installSplashScreen()
 
         setContent {
+            val keepScreenOn = viewModel.keepScreenOn
+            DisposableEffect(keepScreenOn) {
+                if (keepScreenOn) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                onDispose { }
+            }
+
             AppTheme {
                 PermissionHandler(
                     onPermissionGranted = { viewModel.update() },
@@ -109,8 +116,7 @@ class MainActivity :
             }
         }
 
-        repository.registerOnSharedPreferenceChangeListener(this)
-        applyKeepScreenOn()
+        app.repository.registerOnSharedPreferenceChangeListener(this)
     }
 
     private fun export() {
@@ -160,35 +166,8 @@ class MainActivity :
             app.scannerService.stop()
             recreate()
         } else {
-            applyKeepScreenOn()
             viewModel.update()
         }
-    }
-
-    private fun applyKeepScreenOn() {
-        if (keepScreenOn()) {
-            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        } else {
-            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-
-    private fun keepScreenOn(): Boolean =
-        repository.boolean(
-            R.string.keep_screen_on_key,
-            repository.resourceBoolean(R.bool.keep_screen_on_default)
-        )
-
-    private fun getThemeStyle(): ThemeStyle =
-        settingsFind(ThemeStyle.entries, R.string.theme_key, ThemeStyle.DARK)
-
-    private fun <T : Enum<T>> settingsFind(
-        values: EnumEntries<T>,
-        key: Int,
-        defaultValue: T,
-    ): T {
-        val value = repository.stringAsInteger(key, defaultValue.ordinal)
-        return findOne(values, value, defaultValue)
     }
 
     public override fun onPause() {

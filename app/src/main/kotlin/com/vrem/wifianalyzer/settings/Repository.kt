@@ -35,6 +35,12 @@ class Repository(
         onSharedPreferenceChangeListener: OnSharedPreferenceChangeListener,
     ): Unit = sharedPreferences().registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
 
+    fun unregisterOnSharedPreferenceChangeListener(
+        onSharedPreferenceChangeListener: OnSharedPreferenceChangeListener,
+    ): Unit = sharedPreferences().unregisterOnSharedPreferenceChangeListener(
+        onSharedPreferenceChangeListener
+    )
+
     fun save(
         key: Int,
         value: Int,

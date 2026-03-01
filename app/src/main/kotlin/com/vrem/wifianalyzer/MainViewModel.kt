@@ -18,6 +18,7 @@
 package com.vrem.wifianalyzer
 
 import android.app.Application
+import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,7 +31,6 @@ import com.vrem.util.specialTrim
 import com.vrem.wifianalyzer.navigation.MAIN_NAVIGATION
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.permission.PermissionService
-import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.model.Security
@@ -38,9 +38,11 @@ import com.vrem.wifianalyzer.wifi.model.Strength
 import java.util.Locale
 import kotlin.enums.EnumEntries
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+class MainViewModel(application: Application) :
+    AndroidViewModel(application),
+    SharedPreferences.OnSharedPreferenceChangeListener {
     private val app = application as WiFiAnalyzerApplication
-    private val repository = Repository(application)
+    private val repository = app.repository
     private val filtersAdapter = app.filtersAdapter
     private val permissionService = PermissionService(application)
 
@@ -58,6 +60,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var languageLocale by mutableStateOf(readLanguageLocale())
         private set
+    var keepScreenOn by mutableStateOf(readKeepScreenOn())
+        private set
+
+    init {
+        repository.registerOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onCleared() {
+        repository.unregisterOnSharedPreferenceChangeListener(this)
+        super.onCleared()
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        update()
+    }
 
     fun update() {
         if (app.isScannerServiceInitialized) {
@@ -68,17 +85,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         currentWiFiBand = readWiFiBand()
         themeStyle = readThemeStyle()
         languageLocale = readLanguageLocale()
+        keepScreenOn = readKeepScreenOn()
     }
 
     fun shouldReload(): Boolean {
         val newTheme = readThemeStyle()
         val newLocale = readLanguageLocale()
-        return (themeStyle != newTheme || languageLocale != newLocale).also {
-            if (it) {
-                themeStyle = newTheme
-                languageLocale = newLocale
-            }
-        }
+        return themeStyle != newTheme || languageLocale != newLocale
     }
 
     fun selectMenu(menu: NavigationMenu) {
@@ -184,6 +197,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val languageTag = repository.string(R.string.language_key, defaultLanguageTag())
         return findByLanguageTag(languageTag)
     }
+
+    private fun readKeepScreenOn(): Boolean =
+        repository.boolean(
+            R.string.keep_screen_on_key,
+            repository.resourceBoolean(R.bool.keep_screen_on_default)
+        )
 
     private fun <T : Enum<T>> settingsFind(
         values: EnumEntries<T>,
