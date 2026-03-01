@@ -19,18 +19,11 @@
 package com.vrem.wifianalyzer.ui.main
 
 import android.net.wifi.WifiInfo
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointViewCompact
-import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointViewComplete
-import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointViewData
-import com.vrem.wifianalyzer.wifi.accesspoint.ConnectionViewType
-import com.vrem.wifianalyzer.wifi.accesspoint.WarningView
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
-import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +49,10 @@ class MainConnectionViewModel : ViewModel(), UpdateNotifier {
         _selectedWiFiDetail.value = null
     }
 
+    fun onSelectedWiFiDetail(wiFiDetail: WiFiDetail) {
+        _selectedWiFiDetail.value = wiFiDetail
+    }
+
     override fun update(wiFiData: WiFiData) {
         val mainContext = MainContext.INSTANCE
         val settings = mainContext.settings
@@ -74,54 +71,23 @@ class MainConnectionViewModel : ViewModel(), UpdateNotifier {
         val wifiSupportText =
             if (wiFiBand.available()) null else mainContext.resources.getString(wiFiBand.textResource)
 
-        val connectionDetailContent: @Composable () -> Unit = {
-            if (connectionViewType == ConnectionViewType.COMPLETE) {
-                AccessPointViewComplete(
-                    wiFiDetail = connection,
-                    onClick = { _selectedWiFiDetail.value = connection }
-                )
-            } else {
-                val signal = connection.wiFiSignal
-                val data = AccessPointViewData(
-                    ssid = connection.wiFiIdentifier.title,
-                    level = "${signal.level} dBm",
-                    channel = signal.channelDisplay(),
-                    primaryFrequency = "${signal.primaryFrequency}${WiFiSignal.FREQUENCY_UNITS}",
-                    distanceText = signal.distance,
-                    isGrouped = false,
-                    security = connection.wiFiSecurity.security.name,
-                    showGroupIndicator = false
-                )
-                AccessPointViewCompact(
-                    data = data,
-                    onClick = { _selectedWiFiDetail.value = connection }
-                )
-            }
-        }
-
-        val warningContent: @Composable () -> Unit = {
-            val registered = mainContext.mainActivity.currentNavigationMenu().registered()
-            val isScanThrottleEnabled = mainContext.wiFiManagerWrapper.isScanThrottleEnabled()
-            val wiFiDetailsEmpty = wiFiData.wiFiDetails.isEmpty()
-            val isPermissionEnabled = mainContext.permissionService.enabled()
-
-            WarningView(
-                registered = registered,
-                isScanThrottleEnabled = isScanThrottleEnabled,
-                wiFiDetailsEmpty = wiFiDetailsEmpty,
-                isPermissionEnabled = isPermissionEnabled
-            )
-        }
+        val isScannerRegistered = mainContext.mainActivity.currentNavigationMenu().registered()
+        val isScanThrottleEnabled = mainContext.wiFiManagerWrapper.isScanThrottleEnabled()
+        val wiFiDetailsEmpty = wiFiData.wiFiDetails.isEmpty()
+        val isPermissionEnabled = mainContext.permissionService.enabled()
 
         _state.value = MainConnectionState(
             isConnectionVisible = isConnectionVisible,
-            currentConnectionName = connection.wiFiIdentifier.title,
+            connection = connection,
+            connectionViewType = connectionViewType,
             linkSpeed = linkSpeed,
             ipAddress = wiFiConnection.ipAddress,
             wifiSupportText = wifiSupportText,
             isWifiThrottlingVisible = false,
-            connectionDetailContent = connectionDetailContent,
-            warningContent = warningContent
+            isScannerRegistered = isScannerRegistered,
+            isScanThrottleEnabled = isScanThrottleEnabled,
+            wiFiDetailsEmpty = wiFiDetailsEmpty,
+            isPermissionEnabled = isPermissionEnabled
         )
     }
 }

@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     )
 }
 
+@Immutable
 data class SettingsActions(
     val onSetScanSpeed: (Int) -> Unit,
     val onSetSortBy: (SortBy) -> Unit,

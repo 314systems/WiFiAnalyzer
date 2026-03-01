@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -41,6 +42,7 @@ import com.vrem.wifianalyzer.ui.theme.AppTheme
 /**
  * Data class representing the UI state for an Access Point in compact view.
  */
+@Immutable
 data class AccessPointViewData(
     val ssid: String,
     val level: String,
@@ -139,8 +141,8 @@ private val PreviewUngroupedData = AccessPointViewData(
     showGroupIndicator = false
 )
 
-@Preview(showBackground = true, name = "Light Mode")
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
+@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
 fun AccessPointViewCompactGroupedPreview() {
     AppTheme {
@@ -150,8 +152,8 @@ fun AccessPointViewCompactGroupedPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Light Mode")
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
+@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
 fun AccessPointViewCompactUngroupedPreview() {
     AppTheme {

@@ -18,6 +18,7 @@
 
 package com.vrem.wifianalyzer.ui.main
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +31,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,60 +41,80 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.navigation.NavigationMenu
+import com.vrem.wifianalyzer.ui.theme.AppTheme
 
 @Composable
 fun MainDrawerContent(
     selectedMenu: NavigationMenu,
     onMenuSelected: (NavigationMenu) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(12.dp)
-    ) {
-        DrawerHeader()
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-        NavigationMenu.entries.forEach { menu ->
-            NavigationDrawerItem(
-                label = { Text(text = stringResource(id = menu.title)) },
-                selected = menu == selectedMenu,
-                onClick = { onMenuSelected(menu) },
-                modifier = Modifier.padding(vertical = 2.dp)
+    ModalDrawerSheet(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+        ) {
+            DrawerHeader()
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
+
+            NavigationMenu.entries.forEach { menu ->
+                NavigationDrawerItem(
+                    label = { Text(text = stringResource(id = menu.title)) },
+                    selected = menu == selectedMenu,
+                    onClick = { onMenuSelected(menu) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+            }
+            Spacer(modifier = Modifier.padding(bottom = 24.dp))
         }
     }
 }
 
 @Composable
-private fun DrawerHeader() {
+private fun DrawerHeader(modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp, horizontal = 12.dp),
+            .padding(top = 24.dp, bottom = 16.dp, start = 28.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_app),
             contentDescription = null,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(40.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(
                 text = stringResource(id = R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "VREM Software Development",
+                text = stringResource(id = R.string.app_company_name),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun MainDrawerContentPreview() {
+    AppTheme {
+        MainDrawerContent(
+            selectedMenu = NavigationMenu.ACCESS_POINTS,
+            onMenuSelected = {}
+        )
     }
 }

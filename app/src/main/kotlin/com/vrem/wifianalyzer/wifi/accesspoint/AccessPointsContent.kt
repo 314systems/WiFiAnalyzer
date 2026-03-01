@@ -24,13 +24,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.ui.theme.AppTheme
@@ -42,10 +42,10 @@ import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 fun AccessPointsContent(
     viewModel: AccessPointsViewModel = viewModel()
 ) {
-    val wiFiDetails by viewModel.wiFiDetails.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
-    val expandedGroups by viewModel.expandedGroups.collectAsState()
-    
+    val wiFiDetails by viewModel.wiFiDetails.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val expandedGroups by viewModel.expandedGroups.collectAsStateWithLifecycle()
+
     val settings = MainContext.INSTANCE.settings
     val viewType = settings.accessPointView()
     val groupBy = settings.groupBy()
@@ -58,7 +58,7 @@ fun AccessPointsContent(
             onDismiss = { selectedWiFiDetail = null }
         )
     }
-    
+
     AccessPointsContent(
         wiFiDetails = wiFiDetails,
         isRefreshing = isRefreshing,

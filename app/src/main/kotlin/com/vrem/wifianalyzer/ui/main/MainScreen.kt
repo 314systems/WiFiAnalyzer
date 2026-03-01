@@ -105,7 +105,10 @@ fun MainScreen(
                     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
                     val selectedWiFiDetail by connectionViewModel.selectedWiFiDetail.collectAsStateWithLifecycle()
 
-                    MainConnection(state = connectionState)
+                    MainConnection(
+                        state = connectionState,
+                        onConnectionClick = { connectionViewModel.onSelectedWiFiDetail(it) }
+                    )
 
                     selectedWiFiDetail?.let {
                         AccessPointAlertDialog(

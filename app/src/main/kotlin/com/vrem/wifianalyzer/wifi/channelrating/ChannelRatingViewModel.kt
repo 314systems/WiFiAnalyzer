@@ -17,6 +17,7 @@
  */
 package com.vrem.wifianalyzer.wifi.channelrating
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 data class ChannelRatingUiState(
     val wiFiBand: WiFiBand = WiFiBand.GHZ2,
     val bestChannels: List<ChannelAPCount> = emptyList(),
@@ -41,6 +43,7 @@ data class ChannelRatingUiState(
     val isRefreshing: Boolean = false,
 )
 
+@Immutable
 data class ChannelRatingItem(
     val wiFiChannel: WiFiChannel,
     val apCount: Int,

@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
 package com.vrem.wifianalyzer.wifi.channelavailable
 
 import android.content.res.Configuration
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,9 +27,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -37,28 +40,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.ui.theme.AppTheme
-
-data class ChannelAvailableState(
-    val countryCode: String = "",
-    val countryName: String = "",
-    val bands: List<BandState> = emptyList()
-)
-
-data class BandState(
-    val title: String,
-    val widths: List<WidthState>
-)
-
-data class WidthState(
-    @param:StringRes val widthTitleRes: Int,
-    val channels: String
-)
 
 @Composable
 fun ChannelAvailableContent(
@@ -72,7 +61,7 @@ fun ChannelAvailableContent(
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         HeaderSection(state.countryCode, state.countryName)
 
@@ -85,47 +74,86 @@ fun ChannelAvailableContent(
 }
 
 @Composable
-private fun HeaderSection(countryCode: String, countryName: String) {
-    Column {
+private fun HeaderSection(
+    countryCode: String,
+    countryName: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MaterialTheme.shapes.small
-            ) {
-                Text(
-                    text = countryCode,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
-            Text(
-                text = countryName,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold
+            Icon(
+                painter = painterResource(id = R.drawable.location_on_24px),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
             )
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = countryName,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            text = countryCode,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
         }
         HorizontalDivider(
-            modifier = Modifier.padding(top = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
+            modifier = Modifier.padding(top = 16.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+            thickness = 1.dp
         )
     }
 }
 
 @Composable
-private fun InfoSection() {
+private fun InfoSection(modifier: Modifier = Modifier) {
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.15f)
+        ),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = androidx.compose.ui.graphics.SolidColor(
+                MaterialTheme.colorScheme.outlineVariant.copy(
+                    alpha = 0.5f
+                )
+            )
+        )
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.info_24px),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary
+            )
             Text(
                 text = stringResource(id = R.string.wifi_channels_list_url),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
             )
         }
     }
@@ -137,23 +165,38 @@ private fun BandSection(
     modifier: Modifier = Modifier
 ) {
     OutlinedCard(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = band.title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.wifi_24px),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = band.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             band.widths.forEachIndexed { index, width ->
                 if (index > 0) {
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
                 }
                 WidthItem(width)
@@ -163,21 +206,28 @@ private fun BandSection(
 }
 
 @Composable
-private fun WidthItem(width: WidthState) {
-    Column {
+private fun WidthItem(width: WidthState, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(
             text = stringResource(id = width.widthTitleRes),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.5.sp
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = width.channels,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
-        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text(
+                text = width.channels,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(12.dp),
+                lineHeight = 22.sp
+            )
+        }
     }
 }
 
@@ -186,7 +236,12 @@ private fun WidthItem(width: WidthState) {
 @Composable
 fun ChannelAvailableContentPreview() {
     AppTheme {
-        ChannelAvailableContent(state = previewState())
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            ChannelAvailableContent(state = previewState())
+        }
     }
 }
 
