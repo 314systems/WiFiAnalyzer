@@ -22,14 +22,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.wifi.WifiManager
-import com.vrem.wifianalyzer.MainActivity
 
 fun interface Callback { // Compliant, function interface used
     fun onSuccess()
 }
 
 internal class ScanResultsReceiver(
-    private val mainActivity: MainActivity,
+    private val context: Context,
     private val callback: Callback,
 ) : BroadcastReceiver() {
     private var registered = false
@@ -37,14 +36,14 @@ internal class ScanResultsReceiver(
     fun register() {
         if (!registered) {
             val intentFilter = makeIntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-            mainActivity.registerReceiver(this, intentFilter)
+            context.registerReceiver(this, intentFilter)
             registered = true
         }
     }
 
     fun unregister() {
         if (registered) {
-            mainActivity.unregisterReceiver(this)
+            context.unregisterReceiver(this)
             registered = false
         }
     }

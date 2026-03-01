@@ -20,7 +20,8 @@ package com.vrem.wifianalyzer.wifi.scanner
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import com.vrem.util.ssid
-import com.vrem.wifianalyzer.MainContext
+import com.vrem.wifianalyzer.Configuration
+import com.vrem.wifianalyzer.settings.Settings
 
 internal class CacheResult(
     val scanResult: ScanResult,
@@ -32,7 +33,10 @@ internal data class CacheKey(
     val ssid: String,
 )
 
-internal class Cache {
+internal class Cache(
+    private val settings: Settings,
+    private val configuration: Configuration,
+) {
     private val scanResults: ArrayDeque<List<ScanResult>> = ArrayDeque(MAXIMUM)
     private var count: Int = COUNT_MIN
     var wifiInfo: WifiInfo? = null
@@ -60,7 +64,6 @@ internal class Cache {
 
     fun size(): Int =
         if (sizeAvailable) {
-            val settings = MainContext.INSTANCE.settings
             if (settings.cacheOff()) {
                 MINIMUM
             } else {
@@ -94,7 +97,7 @@ internal class Cache {
             it.BSSID
         }.thenBy { it.ssid() }.thenBy { it.level }
 
-    private val sizeAvailable: Boolean get() = MainContext.INSTANCE.configuration.sizeAvailable
+    private val sizeAvailable: Boolean get() = configuration.sizeAvailable
 
     companion object {
         private const val MINIMUM: Int = 1

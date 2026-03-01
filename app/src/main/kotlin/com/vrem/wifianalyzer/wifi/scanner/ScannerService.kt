@@ -17,8 +17,9 @@
  */
 package com.vrem.wifianalyzer.wifi.scanner
 
+import android.content.Context
 import android.os.Handler
-import com.vrem.wifianalyzer.MainActivity
+import com.vrem.wifianalyzer.Configuration
 import com.vrem.wifianalyzer.permission.PermissionService
 import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.wifi.manager.WiFiManagerWrapper
@@ -51,17 +52,18 @@ interface ScannerService {
 }
 
 fun makeScannerService(
-    mainActivity: MainActivity,
+    context: Context,
     wiFiManagerWrapper: WiFiManagerWrapper,
     handler: Handler,
     settings: Settings,
+    configuration: Configuration,
 ): ScannerService {
-    val cache = Cache()
+    val cache = Cache(settings, configuration)
     val transformer = Transformer(cache)
-    val permissionService = PermissionService(mainActivity)
+    val permissionService = PermissionService(context)
     val scanner = Scanner(wiFiManagerWrapper, settings, permissionService, transformer)
     scanner.periodicScan = PeriodicScan(scanner, handler, settings)
     scanner.scannerCallback = ScannerCallback(wiFiManagerWrapper, cache)
-    scanner.scanResultsReceiver = ScanResultsReceiver(mainActivity, scanner.scannerCallback)
+    scanner.scanResultsReceiver = ScanResultsReceiver(context, scanner.scannerCallback)
     return scanner
 }

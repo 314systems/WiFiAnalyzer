@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 
@@ -64,7 +63,7 @@ fun PermissionHandler(
     onTerminateApp: () -> Unit
 ) {
     val context = LocalContext.current
-    val permissionService = MainContext.INSTANCE.permissionService
+    val permissionService = remember { PermissionService(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var permissionGranted by remember { mutableStateOf(permissionService.permissionGranted()) }

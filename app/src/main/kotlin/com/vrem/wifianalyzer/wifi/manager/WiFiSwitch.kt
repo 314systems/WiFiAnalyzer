@@ -21,18 +21,17 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.vrem.util.buildMinVersionQ
-import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.startWiFiSettings
 
 class WiFiSwitch(
     private val wifiManager: WifiManager,
+    private val onStartWiFiSettings: () -> Unit,
 ) {
     fun on(): Boolean = enable(true)
 
     fun off(): Boolean = enable(false)
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    fun startWiFiSettings(): Unit = MainContext.INSTANCE.mainActivity.startWiFiSettings()
+    fun startWiFiSettings(): Unit = onStartWiFiSettings()
 
     fun minVersionQ(): Boolean = buildMinVersionQ()
 

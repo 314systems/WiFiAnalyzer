@@ -32,9 +32,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 
@@ -102,6 +104,8 @@ private fun WiFiBandSelector(
     currentWiFiBand: WiFiBand,
     onWiFiBandClick: (WiFiBand) -> Unit,
 ) {
+    val context = LocalContext.current
+    val app = context.applicationContext as WiFiAnalyzerApplication
     var expanded by remember { mutableStateOf(false) }
 
     TextButton(onClick = { expanded = true }) {
@@ -116,7 +120,7 @@ private fun WiFiBandSelector(
         onDismissRequest = { expanded = false }
     ) {
         WiFiBand.entries.forEach { band ->
-            if (band.available()) {
+            if (band.available(app)) {
                 DropdownMenuItem(
                     text = { Text(stringResource(band.textResource)) },
                     onClick = {

@@ -17,9 +17,10 @@
  */
 package com.vrem.wifianalyzer.wifi.channelrating
 
+import android.app.Application
 import androidx.compose.runtime.Immutable
-import androidx.lifecycle.ViewModel
-import com.vrem.wifianalyzer.MainContext
+import androidx.lifecycle.AndroidViewModel
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.band.WiFiChannel
 import com.vrem.wifianalyzer.wifi.model.ChannelAPCount
@@ -51,25 +52,30 @@ data class ChannelRatingItem(
     val rating: Strength,
 )
 
-class ChannelRatingViewModel :
-    ViewModel(),
+class ChannelRatingViewModel(application: Application) :
+    AndroidViewModel(application),
     UpdateNotifier {
+    private val app = application as WiFiAnalyzerApplication
     private val channelRating = ChannelRating()
     private val _uiState = MutableStateFlow(ChannelRatingUiState())
     val uiState: StateFlow<ChannelRatingUiState> = _uiState.asStateFlow()
 
     init {
-        MainContext.INSTANCE.scannerService.register(this)
-        update(MainContext.INSTANCE.scannerService.wiFiData())
+        if (app.isScannerServiceInitialized) {
+            app.scannerService.register(this)
+            update(app.scannerService.wiFiData())
+        }
     }
 
     override fun onCleared() {
-        MainContext.INSTANCE.scannerService.unregister(this)
+        if (app.isScannerServiceInitialized) {
+            app.scannerService.unregister(this)
+        }
         super.onCleared()
     }
 
     override fun update(wiFiData: WiFiData) {
-        val settings = MainContext.INSTANCE.settings
+        val settings = app.settings
         val wiFiBand = settings.wiFiBand()
         val countryCode = settings.countryCode()
         val wiFiChannels = wiFiBand.wiFiChannels.availableChannels(wiFiBand, countryCode)
@@ -100,7 +106,9 @@ class ChannelRatingViewModel :
     }
 
     fun refresh() {
-        _uiState.update { it.copy(isRefreshing = true) }
-        MainContext.INSTANCE.scannerService.update()
+        if (app.isScannerServiceInitialized) {
+            _uiState.update { it.copy(isRefreshing = true) }
+            app.scannerService.update()
+        }
     }
 }

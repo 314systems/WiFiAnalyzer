@@ -24,8 +24,8 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.EMPTY
 import com.vrem.util.packageInfo
-import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,19 +34,18 @@ import java.util.Date
 import java.util.Locale
 
 class AboutViewModel(application: Application) : AndroidViewModel(application) {
+    private val app = application as WiFiAnalyzerApplication
     private val _uiState = MutableStateFlow(createUiState())
     val uiState: StateFlow<AboutUiState> = _uiState.asStateFlow()
 
     private fun createUiState(): AboutUiState {
-        val context = getApplication<Application>()
-        val mainContext = MainContext.INSTANCE
-        val wiFiManagerWrapper = mainContext.wiFiManagerWrapper
-        val configuration = mainContext.configuration
+        val wiFiManagerWrapper = app.wiFiManagerWrapper
+        val configuration = app.configuration
 
         return AboutUiState(
-            packageName = context.packageName,
-            versionInfo = getVersionInfo(context, configuration),
-            copyright = getCopyright(context),
+            packageName = app.packageName,
+            versionInfo = getVersionInfo(app, configuration),
+            copyright = getCopyright(app),
             deviceInfo = getDeviceInfo(),
             wiFiThrottlingEnabled = wiFiManagerWrapper.isScanThrottleEnabled(),
             is5GHzBandSupported = wiFiManagerWrapper.is5GHzBandSupported(),

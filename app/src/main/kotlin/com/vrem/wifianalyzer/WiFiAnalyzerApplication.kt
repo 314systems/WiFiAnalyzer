@@ -17,12 +17,11 @@
  */
 package com.vrem.wifianalyzer
 
+import android.app.Application
 import android.content.Context
-import android.content.res.Resources
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.Looper
-import com.vrem.wifianalyzer.permission.PermissionService
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.vendor.model.VendorService
@@ -31,36 +30,49 @@ import com.vrem.wifianalyzer.wifi.manager.WiFiManagerWrapper
 import com.vrem.wifianalyzer.wifi.scanner.ScannerService
 import com.vrem.wifianalyzer.wifi.scanner.makeScannerService
 
-enum class MainContext {
-    INSTANCE,
-    ;
-
+class WiFiAnalyzerApplication : Application() {
     lateinit var settings: Settings
-    lateinit var mainActivity: MainActivity
-    lateinit var wiFiManagerWrapper: WiFiManagerWrapper
-    lateinit var permissionService: PermissionService
-    lateinit var scannerService: ScannerService
+        private set
     lateinit var vendorService: VendorService
-    lateinit var configuration: Configuration
+        private set
+    lateinit var wiFiManagerWrapper: WiFiManagerWrapper
+        private set
     lateinit var filtersAdapter: FiltersAdapter
+        private set
+    private var _scannerService: ScannerService? = null
+    val scannerService: ScannerService
+        get() = _scannerService ?: throw IllegalStateException("ScannerService not initialized")
 
-    val context: Context get() = mainActivity.applicationContext
+    val isScannerServiceInitialized: Boolean
+        get() = _scannerService != null
 
-    val resources: Resources get() = context.resources
+    lateinit var configuration: Configuration
+        private set
 
-    private val wiFiManager: WifiManager get() = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-
-    fun initialize(
-        activity: MainActivity,
-        largeScreen: Boolean,
-    ) {
-        mainActivity = activity
-        configuration = Configuration(largeScreen)
-        settings = Settings(Repository(context))
-        vendorService = VendorService(activity.resources)
+    override fun onCreate() {
+        super.onCreate()
+        settings = Settings(Repository(this))
+        vendorService = VendorService(resources)
+        val wiFiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
         wiFiManagerWrapper = WiFiManagerWrapper(wiFiManager)
-        permissionService = PermissionService(activity)
-        scannerService = makeScannerService(mainActivity, wiFiManagerWrapper, Handler(Looper.getMainLooper()), settings)
         filtersAdapter = FiltersAdapter(settings)
+        configuration = Configuration(false) // Default, will be updated by MainActivity
+    }
+
+    fun initScannerService(activity: MainActivity, largeScreen: Boolean) {
+        configuration = Configuration(largeScreen)
+        // Re-initialize WiFiManagerWrapper with activity context to handle settings navigation
+        val wiFiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wiFiManagerWrapper = WiFiManagerWrapper(wiFiManager, activity::startWiFiSettings)
+
+        if (_scannerService == null) {
+            _scannerService = makeScannerService(
+                this,
+                wiFiManagerWrapper,
+                Handler(Looper.getMainLooper()),
+                settings,
+                configuration
+            )
+        }
     }
 }

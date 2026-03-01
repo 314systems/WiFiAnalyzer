@@ -17,6 +17,8 @@
  */
 package com.vrem.wifianalyzer.navigation
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import com.vrem.wifianalyzer.R
 
 val MAIN_NAVIGATION =
@@ -27,86 +29,74 @@ val MAIN_NAVIGATION =
         NavigationMenu.TIME_GRAPH,
     )
 
-private const val MENU_ITEM_INVALID_ID = -1
-
 enum class NavigationMenu(
-    val idDrawer: Int,
-    val idBottom: Int,
-    val title: Int,
+    @StringRes val title: Int,
+    @DrawableRes val icon: Int,
+    val showBottomBar: Boolean = false,
     private val isRegistered: Boolean = false,
     val scannerVisible: Boolean = false,
     val filterVisible: Boolean = false,
     val wiFiBandVisible: Boolean = false,
 ) {
     ACCESS_POINTS(
-        R.id.nav_drawer_access_points,
-        R.id.nav_bottom_access_points,
         R.string.action_access_points,
+        R.drawable.wifi_24px,
+        showBottomBar = true,
         isRegistered = true,
         scannerVisible = true,
         filterVisible = true,
         wiFiBandVisible = true,
     ),
     CHANNEL_RATING(
-        R.id.nav_drawer_channel_rating,
-        R.id.nav_bottom_channel_rating,
         R.string.action_channel_rating,
+        R.drawable.wifi_tethering_24px,
+        showBottomBar = true,
         isRegistered = true,
         scannerVisible = true,
         filterVisible = false,
         wiFiBandVisible = true,
     ),
     CHANNEL_GRAPH(
-        R.id.nav_drawer_channel_graph,
-        R.id.nav_bottom_channel_graph,
         R.string.action_channel_graph,
+        R.drawable.insert_chart_24px,
+        showBottomBar = true,
         isRegistered = true,
         scannerVisible = true,
         filterVisible = true,
         wiFiBandVisible = true,
     ),
     TIME_GRAPH(
-        R.id.nav_drawer_time_graph,
-        R.id.nav_bottom_time_graph,
         R.string.action_time_graph,
+        R.drawable.show_chart_24px,
+        showBottomBar = true,
         isRegistered = true,
         scannerVisible = true,
         filterVisible = true,
         wiFiBandVisible = true,
     ),
     EXPORT(
-        R.id.nav_drawer_export,
-        MENU_ITEM_INVALID_ID,
-        title = R.string.action_export,
+        R.string.action_export,
+        R.drawable.ic_app, // Need a proper icon if used in drawer
     ),
     CHANNEL_AVAILABLE(
-        R.id.nav_drawer_channel_available,
-        MENU_ITEM_INVALID_ID,
-        title = R.string.action_channel_available,
+        R.string.action_channel_available,
+        R.drawable.ic_app,
     ),
     VENDORS(
-        R.id.nav_drawer_vendors,
-        MENU_ITEM_INVALID_ID,
-        title = R.string.action_vendors,
+        R.string.action_vendors,
+        R.drawable.ic_app,
     ),
     SETTINGS(
-        R.id.nav_drawer_settings,
-        MENU_ITEM_INVALID_ID,
-        title = R.string.action_settings,
+        R.string.action_settings,
+        R.drawable.ic_app,
     ),
     ABOUT(
-        R.id.nav_drawer_about,
-        MENU_ITEM_INVALID_ID,
-        title = R.string.action_about,
+        R.string.action_about,
+        R.drawable.ic_app,
     ),
     ;
 
     fun wiFiBandSwitchable(): Boolean = wiFiBandVisible
 
     fun registered(): Boolean = isRegistered
-
-    companion object {
-        fun find(id: Int): NavigationMenu =
-            entries.firstOrNull { it.idDrawer == id || it.idBottom == id } ?: ACCESS_POINTS
-    }
 }

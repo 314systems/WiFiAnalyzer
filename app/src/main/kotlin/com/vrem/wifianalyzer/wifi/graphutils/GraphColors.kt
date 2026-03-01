@@ -17,7 +17,7 @@
  */
 package com.vrem.wifianalyzer.wifi.graphutils
 
-import com.vrem.wifianalyzer.MainContext
+import android.content.res.Resources
 import com.vrem.wifianalyzer.R
 
 private fun String.toColor(): Long = this.substring(1).toLong(16)
@@ -29,14 +29,14 @@ data class GraphColor(
 
 internal val transparent = GraphColor(0x009E9E9E, 0x009E9E9E)
 
-class GraphColors {
+class GraphColors(private val resources: Resources) {
     private val availableGraphColors: MutableList<GraphColor> = mutableListOf()
     private val currentGraphColors: ArrayDeque<GraphColor> = ArrayDeque()
 
     private fun availableGraphColors(): List<GraphColor> {
         if (availableGraphColors.isEmpty()) {
             val colors =
-                MainContext.INSTANCE.resources
+                resources
                     .getStringArray(R.array.graph_colors)
                     .filterNotNull()
                     .withIndex()

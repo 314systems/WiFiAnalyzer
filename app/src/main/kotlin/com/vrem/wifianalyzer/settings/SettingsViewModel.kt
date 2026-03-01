@@ -17,20 +17,22 @@
  */
 package com.vrem.wifianalyzer.settings
 
+import android.app.Application
 import android.content.SharedPreferences
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import com.vrem.util.buildMinVersionQ
-import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.wifi.graphutils.GraphLegend
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class SettingsViewModel : ViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private val mainContext = MainContext.INSTANCE
-    private val settings = mainContext.settings
-    private val repository = Repository(mainContext.mainActivity)
+class SettingsViewModel(application: Application) : AndroidViewModel(application),
+    SharedPreferences.OnSharedPreferenceChangeListener {
+    private val app = application as WiFiAnalyzerApplication
+    private val settings = app.settings
+    private val repository = Repository(application)
 
     private val _scanSpeed = MutableStateFlow(settings.scanSpeed())
     val scanSpeed: StateFlow<Int> = _scanSpeed.asStateFlow()

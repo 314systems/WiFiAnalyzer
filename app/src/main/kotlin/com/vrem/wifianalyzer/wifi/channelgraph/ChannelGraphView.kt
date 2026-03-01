@@ -17,11 +17,12 @@
  */
 package com.vrem.wifianalyzer.wifi.channelgraph
 
+import android.content.Context
 import android.view.View
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.TitleLineGraphSeries
-import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
@@ -37,17 +38,17 @@ import com.vrem.wifianalyzer.wifi.predicate.Predicate
 import com.vrem.wifianalyzer.wifi.predicate.makeOtherPredicate
 
 internal fun makeGraphView(
-    mainContext: MainContext,
+    context: Context,
     graphMaximumY: Int,
     themeStyle: ThemeStyle,
     wiFiBand: WiFiBand,
 ): GraphView {
-    val resources = mainContext.resources
+    val resources = context.resources
     return GraphViewBuilder(wiFiBand.wiFiChannels.graphChannelCount(), graphMaximumY, themeStyle, true)
         .setLabelFormatter(ChannelAxisLabel(wiFiBand))
         .setVerticalTitle(resources.getString(R.string.graph_axis_y))
         .setHorizontalTitle(resources.getString(R.string.graph_channel_axis_x))
-        .build(mainContext.context, !wiFiBand.ghz2)
+        .build(context, !wiFiBand.ghz2)
 }
 
 internal fun makeDefaultSeries(
@@ -59,19 +60,21 @@ internal fun makeDefaultSeries(
         GraphDataPoint(frequencyEnd, MIN_Y),
     )
     return TitleLineGraphSeries(dataPoints).apply {
-        color = transparent.primary.toInt()
+        color = transparent.primary.toLong().toInt()
         thickness = THICKNESS_INVISIBLE
     }
 }
 
-internal fun makeGraphViewWrapper(wiFiBand: WiFiBand): GraphViewWrapper {
-    val mainContext = MainContext.INSTANCE
-    val settings = mainContext.settings
+internal fun makeGraphViewWrapper(
+    app: WiFiAnalyzerApplication,
+    wiFiBand: WiFiBand
+): GraphViewWrapper {
+    val settings = app.settings
     val themeStyle = settings.themeStyle()
-    val graphView = makeGraphView(mainContext, settings.graphMaximumY(), themeStyle, wiFiBand)
+    val graphView = makeGraphView(app, settings.graphMaximumY(), themeStyle, wiFiBand)
     val graphViewWrapper = GraphViewWrapper(graphView, settings.channelGraphLegend(), themeStyle)
 
-    mainContext.configuration.size = graphViewWrapper.size(graphViewWrapper.calculateGraphType())
+    app.configuration.size = graphViewWrapper.size(graphViewWrapper.calculateGraphType())
 
     val wiFiChannels = wiFiBand.wiFiChannels.wiFiChannels()
     val minX = wiFiChannels.first().frequency
@@ -84,12 +87,13 @@ internal fun makeGraphViewWrapper(wiFiBand: WiFiBand): GraphViewWrapper {
 }
 
 internal class ChannelGraphView(
+    private val app: WiFiAnalyzerApplication,
     private val wiFiBand: WiFiBand,
     private val dataManager: DataManager = DataManager(),
-    private val graphViewWrapper: GraphViewWrapper = makeGraphViewWrapper(wiFiBand),
+    private val graphViewWrapper: GraphViewWrapper = makeGraphViewWrapper(app, wiFiBand),
 ) : GraphViewNotifier {
     override fun update(wiFiData: WiFiData) {
-        val settings = MainContext.INSTANCE.settings
+        val settings = app.settings
         val predicate = predicate(settings)
         val wiFiDetails = wiFiData.wiFiDetails(predicate, settings.sortBy())
         val newSeries = dataManager.newSeries(wiFiDetails)
@@ -103,7 +107,7 @@ internal class ChannelGraphView(
         }
     }
 
-    fun selected(): Boolean = wiFiBand == MainContext.INSTANCE.settings.wiFiBand()
+    fun selected(): Boolean = wiFiBand == app.settings.wiFiBand()
 
     fun predicate(settings: Settings): Predicate = makeOtherPredicate(settings)
 

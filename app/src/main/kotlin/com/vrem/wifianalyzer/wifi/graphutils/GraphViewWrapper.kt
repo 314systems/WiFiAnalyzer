@@ -22,7 +22,6 @@ import com.jjoe64.graphview.LegendRenderer
 import com.jjoe64.graphview.series.BaseSeries
 import com.jjoe64.graphview.series.DataPointInterface
 import com.jjoe64.graphview.series.Series
-import com.vrem.wifianalyzer.MainContext
 import com.vrem.wifianalyzer.SIZE_MAX
 import com.vrem.wifianalyzer.SIZE_MIN
 import com.vrem.wifianalyzer.settings.ThemeStyle
@@ -35,7 +34,7 @@ class GraphViewWrapper(
     var graphLegend: GraphLegend,
     private val themeStyle: ThemeStyle,
     private val seriesCache: SeriesCache = SeriesCache(),
-    private val seriesOptions: SeriesOptions = SeriesOptions(),
+    private val seriesOptions: SeriesOptions = SeriesOptions(GraphColors(graphView.resources)),
 ) {
     fun removeSeries(newSeries: Set<WiFiDetail>): Unit =
         seriesCache.remove(differenceSeries(newSeries)).forEach {
@@ -131,10 +130,7 @@ class GraphViewWrapper(
     fun calculateGraphType(): Int =
         runCatching {
             with(MessageDigest.getInstance("MD5")) {
-                update(
-                    MainContext.INSTANCE.mainActivity.packageName
-                        .toByteArray(),
-                )
+                update(graphView.context.packageName.toByteArray())
                 val digest: ByteArray = digest()
                 digest.contentHashCode()
             }

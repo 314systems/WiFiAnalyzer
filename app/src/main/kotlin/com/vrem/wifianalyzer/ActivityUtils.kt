@@ -23,12 +23,14 @@ import android.provider.Settings
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 
-internal fun MainActivity.keepScreenOn() =
-    if (MainContext.INSTANCE.settings.keepScreenOn()) {
+internal fun MainActivity.keepScreenOn() {
+    val settings = (application as WiFiAnalyzerApplication).settings
+    if (settings.keepScreenOn()) {
         this.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     } else {
         this.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
+}
 
 internal fun makeIntent(action: String): Intent = Intent(action)
 

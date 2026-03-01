@@ -30,22 +30,23 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PreferenceCategory(title: String) {
+fun PreferenceCategory(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 8.dp)
+        modifier = modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 8.dp)
     )
 }
 
 @Composable
 fun SwitchPreference(
     title: String,
+    modifier: Modifier = Modifier,
     summary: String? = null,
     icon: Painter? = null,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     ListItem(
         headlineContent = { Text(title) },
@@ -54,34 +55,36 @@ fun SwitchPreference(
         trailingContent = {
             Switch(checked = checked, onCheckedChange = onCheckedChange)
         },
-        modifier = Modifier.clickable { onCheckedChange(!checked) }
+        modifier = modifier.clickable { onCheckedChange(!checked) }
     )
 }
 
 @Composable
 fun ListPreference(
     title: String,
+    modifier: Modifier = Modifier,
     summary: String? = null,
     icon: Painter? = null,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = summary?.let { { Text(it) } },
         leadingContent = icon?.let { { Icon(it, contentDescription = null) } },
-        modifier = Modifier.clickable { onClick() }
+        modifier = modifier.clickable { onClick() }
     )
 }
 
 @Composable
 fun ActionPreference(
     title: String,
+    modifier: Modifier = Modifier,
     icon: Painter? = null,
     onClick: () -> Unit
 ) {
     ListItem(
         headlineContent = { Text(title) },
         leadingContent = icon?.let { { Icon(it, contentDescription = null) } },
-        modifier = Modifier.clickable { onClick() }
+        modifier = modifier.clickable { onClick() }
     )
 }

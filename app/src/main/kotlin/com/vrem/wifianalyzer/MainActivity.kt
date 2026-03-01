@@ -22,20 +22,14 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
-import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.google.android.material.navigation.NavigationView
-import com.vrem.util.SPACE_SEPARATOR
 import com.vrem.util.createContext
-import com.vrem.util.specialTrim
 import com.vrem.wifianalyzer.export.Export
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.navigation.NavigationMenuControl
@@ -45,40 +39,26 @@ import com.vrem.wifianalyzer.settings.Settings
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.main.MainScreen
 import com.vrem.wifianalyzer.ui.theme.AppTheme
-import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
-import com.vrem.wifianalyzer.wifi.scanner.ScannerService
+import android.provider.Settings as AndroidSettings
 
 class MainActivity :
     AppCompatActivity(),
     NavigationMenuControl,
     OnSharedPreferenceChangeListener {
-    private lateinit var mainReload: MainReload
     private lateinit var settings: Settings
-
-    var currentMenu by mutableStateOf(NavigationMenu.ACCESS_POINTS)
-        private set
-    var isScannerRunning by mutableStateOf(false)
-        private set
-    var isFilterActive by mutableStateOf(false)
-        private set
-    var currentWiFiBand by mutableStateOf(WiFiBand.GHZ2)
-        private set
-    var showFilterDialog by mutableStateOf(false)
+    private val viewModel: MainViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) =
         super.attachBaseContext(newBase.createContext(Settings(Repository(newBase)).languageLocale()))
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val mainContext = MainContext.INSTANCE
-        mainContext.initialize(this, largeScreen)
+        val app = application as WiFiAnalyzerApplication
+        app.initScannerService(this, largeScreen)
 
-        settings = mainContext.settings
+        settings = app.settings
         settings.initializeDefaultValues()
         settings.themeStyle().setTheme(this)
-
-        mainReload = MainReload(settings)
-        currentMenu = settings.selectedMenu()
 
         super.onCreate(savedInstanceState)
         installSplashScreen()
@@ -86,60 +66,39 @@ class MainActivity :
         setContent {
             AppTheme {
                 PermissionHandler(
-                    onPermissionGranted = { update() },
+                    onPermissionGranted = { viewModel.update() },
                     onTerminateApp = { finish() }
                 )
 
                 MainScreen(
-                    currentMenu = currentMenu,
-                    isScannerRunning = isScannerRunning,
-                    isFilterActive = isFilterActive,
-                    currentWiFiBand = currentWiFiBand,
+                    currentMenu = viewModel.currentMenu,
+                    isScannerRunning = viewModel.isScannerRunning,
+                    isFilterActive = viewModel.isFilterActive,
+                    currentWiFiBand = viewModel.currentWiFiBand,
                     onMenuSelected = { menu ->
                         if (menu == NavigationMenu.EXPORT) {
                             export()
                         } else {
-                            currentMenu = menu
-                            settings.saveSelectedMenu(menu)
-                            update()
+                            viewModel.selectMenu(menu)
                         }
                     },
-                    onToggleScanner = {
-                        MainContext.INSTANCE.scannerService.toggle()
-                        update()
-                    },
-                    onFilterClick = { showFilterDialog = true },
-                    onWiFiBandClick = { band ->
-                        settings.wiFiBand(band)
-                        update()
+                    onToggleScanner = { viewModel.toggleScanner() },
+                    onFilterClick = { viewModel.showFilterDialog = true },
+                    onWiFiBandClick = { band -> viewModel.updateWiFiBand(band) },
+                    onBackPressed = {
+                        viewModel.handleBack(onFinish = { finish() })
                     }
                 )
 
-                if (showFilterDialog) {
+                if (viewModel.showFilterDialog) {
                     FilterDialog(
-                        filtersAdapter = MainContext.INSTANCE.filtersAdapter,
-                        isAccessPoints = currentMenu == NavigationMenu.ACCESS_POINTS,
+                        filtersAdapter = app.filtersAdapter,
+                        isAccessPoints = viewModel.currentMenu == NavigationMenu.ACCESS_POINTS,
                         onApply = { ssid, bands, strengths, securities ->
-                            with(MainContext.INSTANCE.filtersAdapter) {
-                                ssidAdapter().selections =
-                                    ssid.specialTrim().split(String.SPACE_SEPARATOR).toSet()
-                                wiFiBandAdapter().selections = bands
-                                strengthAdapter().selections = strengths
-                                securityAdapter().selections = securities
-                                save()
-                            }
-                            update()
-                            showFilterDialog = false
+                            viewModel.applyFilters(ssid, bands, strengths, securities)
                         },
-                        onReset = {
-                            MainContext.INSTANCE.filtersAdapter.reset()
-                            update()
-                            showFilterDialog = false
-                        },
-                        onClose = {
-                            MainContext.INSTANCE.filtersAdapter.reload()
-                            showFilterDialog = false
-                        }
+                        onReset = { viewModel.resetFilters() },
+                        onClose = { viewModel.closeFilters() }
                     )
                 }
             }
@@ -147,14 +106,13 @@ class MainActivity :
 
         settings.registerOnSharedPreferenceChangeListener(this)
         applyKeepScreenOn()
-
-        onBackPressedDispatcher.addCallback(this, MainActivityBackPressed(this))
     }
 
     private fun export() {
+        val app = application as WiFiAnalyzerApplication
         val export = Export()
         val wiFiDetails: List<WiFiDetail> =
-            MainContext.INSTANCE.scannerService
+            app.scannerService
                 .wiFiData()
                 .wiFiDetails
         if (wiFiDetails.isEmpty()) {
@@ -174,6 +132,12 @@ class MainActivity :
             }
     }
 
+    fun startWiFiSettings() {
+        val intent = Intent(AndroidSettings.ACTION_WIFI_SETTINGS)
+        intent.data = Uri.fromParts("package", packageName, null)
+        runCatching { startActivity(intent) }
+    }
+
     private val largeScreen: Boolean
         get() {
             val configuration = resources.configuration
@@ -186,21 +150,14 @@ class MainActivity :
         sharedPreferences: SharedPreferences,
         key: String?,
     ) {
-        if (mainReload.shouldReload(settings)) {
-            MainContext.INSTANCE.scannerService.stop()
+        if (viewModel.shouldReload()) {
+            val app = application as WiFiAnalyzerApplication
+            app.scannerService.stop()
             recreate()
         } else {
             applyKeepScreenOn()
-            update()
+            viewModel.update()
         }
-    }
-
-    fun update() {
-        val scannerService = MainContext.INSTANCE.scannerService
-        scannerService.update()
-        isScannerRunning = scannerService.running()
-        isFilterActive = MainContext.INSTANCE.filtersAdapter.isActive()
-        currentWiFiBand = settings.wiFiBand()
     }
 
     private fun applyKeepScreenOn() {
@@ -211,10 +168,6 @@ class MainActivity :
         }
     }
 
-    fun closeDrawer(): Boolean {
-        return false
-    }
-
     override fun updateActionBar() {
         // No longer needed with Compose TopAppBar
     }
@@ -223,52 +176,29 @@ class MainActivity :
         // Compose 側の表示制御が必要な場合にここでステートを更新する
     }
 
-    override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
-        currentMenu = NavigationMenu.find(menuItem.itemId)
-        update()
-        return true
-    }
-
-    override fun currentMenuItem(): MenuItem = throw UnsupportedOperationException()
-
-    override fun currentNavigationMenu(): NavigationMenu = currentMenu
+    override fun currentNavigationMenu(): NavigationMenu = viewModel.currentMenu
 
     override fun currentNavigationMenu(navigationMenu: NavigationMenu) {
-        currentMenu = navigationMenu
-        settings.saveSelectedMenu(navigationMenu)
-        update()
-    }
-
-    override fun navigationView(): NavigationView = throw UnsupportedOperationException()
-
-    override fun <T : View?> findViewById(id: Int): T {
-        return super.findViewById<T>(id)
+        viewModel.selectMenu(navigationMenu)
     }
 
     public override fun onPause() {
-        val scannerService: ScannerService = MainContext.INSTANCE.scannerService
-        scannerService.pause()
-        update()
+        viewModel.pauseScanner()
         super.onPause()
     }
 
     public override fun onResume() {
         super.onResume()
-        val scannerService: ScannerService = MainContext.INSTANCE.scannerService
-        if (MainContext.INSTANCE.permissionService.permissionGranted()) {
-            scannerService.resume()
-        }
-        update()
+        viewModel.resumeScanner()
     }
 
     public override fun onStop() {
-        MainContext.INSTANCE.scannerService.stop()
-        update()
+        viewModel.stopScanner()
         super.onStop()
     }
 
     public override fun onStart() {
         super.onStart()
-        update()
+        viewModel.update()
     }
 }

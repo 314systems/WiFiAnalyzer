@@ -17,8 +17,6 @@
  */
 package com.vrem.wifianalyzer.wifi.filter.adapter
 
-import com.vrem.wifianalyzer.MainContext
-import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.settings.Settings
 import java.io.Serializable
 
@@ -37,13 +35,13 @@ class FiltersAdapter(
         securityAdapter = SecurityAdapter(settings.findSecurities())
     }
 
-    fun reset(): Unit =
-        filterAdapters(isAccessPoints()).forEach {
+    fun reset(isAccessPoints: Boolean) =
+        filterAdapters(isAccessPoints).forEach {
             it.reset()
             it.save(settings)
         }
 
-    fun save(): Unit = filterAdapters(isAccessPoints()).forEach { it.save(settings) }
+    fun save(isAccessPoints: Boolean) = filterAdapters(isAccessPoints).forEach { it.save(settings) }
 
     fun ssidAdapter(): SSIDAdapter = ssidAdapter
 
@@ -53,7 +51,8 @@ class FiltersAdapter(
 
     fun securityAdapter(): SecurityAdapter = securityAdapter
 
-    internal fun isActive(): Boolean = filterAdapters(isAccessPoints()).any { it.isActive() }
+    internal fun isActive(isAccessPoints: Boolean): Boolean =
+        filterAdapters(isAccessPoints).any { it.isActive() }
 
     internal fun filterAdapters(accessPoints: Boolean): List<BasicFilterAdapter<out Serializable>> =
         if (accessPoints) {
@@ -61,7 +60,4 @@ class FiltersAdapter(
         } else {
             listOf(ssidAdapter, strengthAdapter, securityAdapter)
         }
-
-    private fun isAccessPoints(): Boolean =
-        NavigationMenu.ACCESS_POINTS == MainContext.INSTANCE.mainActivity.currentNavigationMenu()
 }

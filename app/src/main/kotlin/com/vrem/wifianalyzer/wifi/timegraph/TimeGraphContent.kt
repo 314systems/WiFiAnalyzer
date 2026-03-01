@@ -25,20 +25,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.jjoe64.graphview.GraphView
-import com.vrem.wifianalyzer.MainContext
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 
 @Composable
 fun TimeGraphContent(modifier: Modifier = Modifier) {
-    val scannerService = MainContext.INSTANCE.scannerService
-    val settings = MainContext.INSTANCE.settings
+    val context = LocalContext.current
+    val app = context.applicationContext as WiFiAnalyzerApplication
+    val scannerService = app.scannerService
+    val settings = app.settings
     val wiFiBand = settings.wiFiBand()
 
     val graphViews = remember {
-        WiFiBand.entries.associateWith { band -> TimeGraphView(band) }
+        WiFiBand.entries.associateWith { band -> TimeGraphView(app, band) }
     }
 
     val currentGraphView = graphViews[wiFiBand]
@@ -59,7 +61,7 @@ fun TimeGraphContent(modifier: Modifier = Modifier) {
             .padding(8.dp)
     ) {
         currentGraphView?.let { viewNotifier ->
-            AndroidView<GraphView>(
+            AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = {
                     viewNotifier.graphView()

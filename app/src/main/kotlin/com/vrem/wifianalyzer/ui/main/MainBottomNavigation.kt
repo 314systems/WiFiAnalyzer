@@ -22,10 +22,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.navigation.MAIN_NAVIGATION
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.ui.theme.AppTheme
@@ -33,23 +33,19 @@ import com.vrem.wifianalyzer.ui.theme.AppTheme
 @Composable
 fun MainBottomNavigation(
     selectedMenu: NavigationMenu,
-    onMenuSelected: (NavigationMenu) -> Unit
+    onMenuSelected: (NavigationMenu) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    NavigationBar {
+    NavigationBar(modifier) {
         MAIN_NAVIGATION.forEach { menu ->
             NavigationBarItem(
                 selected = selectedMenu == menu,
-                onClick = { onMenuSelected(menu) },
+                onClick = {
+                    onMenuSelected(menu)
+                },
                 icon = {
-                    val iconRes = when (menu) {
-                        NavigationMenu.ACCESS_POINTS -> R.drawable.wifi_24px
-                        NavigationMenu.CHANNEL_RATING -> R.drawable.wifi_tethering_24px
-                        NavigationMenu.CHANNEL_GRAPH -> R.drawable.insert_chart_24px
-                        NavigationMenu.TIME_GRAPH -> R.drawable.show_chart_24px
-                        else -> R.drawable.wifi_24px
-                    }
                     Icon(
-                        painter = painterResource(id = iconRes),
+                        painter = painterResource(id = menu.icon),
                         contentDescription = stringResource(id = menu.title)
                     )
                 },

@@ -18,9 +18,11 @@
 
 package com.vrem.wifianalyzer.ui.main
 
+import android.app.Application
 import android.net.wifi.WifiInfo
-import androidx.lifecycle.ViewModel
-import com.vrem.wifianalyzer.MainContext
+import androidx.lifecycle.AndroidViewModel
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
+import com.vrem.wifianalyzer.permission.PermissionService
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection
 import com.vrem.wifianalyzer.wifi.model.WiFiData
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
@@ -29,7 +31,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class MainConnectionViewModel : ViewModel(), UpdateNotifier {
+class MainConnectionViewModel(application: Application) : AndroidViewModel(application),
+    UpdateNotifier {
+    private val app = application as WiFiAnalyzerApplication
+    private val permissionService = PermissionService(application)
     private val _state = MutableStateFlow(MainConnectionState())
     val state: StateFlow<MainConnectionState> = _state.asStateFlow()
 
@@ -37,11 +42,15 @@ class MainConnectionViewModel : ViewModel(), UpdateNotifier {
     val selectedWiFiDetail: StateFlow<WiFiDetail?> = _selectedWiFiDetail.asStateFlow()
 
     init {
-        MainContext.INSTANCE.scannerService.register(this)
+        if (app.isScannerServiceInitialized) {
+            app.scannerService.register(this)
+        }
     }
 
     override fun onCleared() {
-        MainContext.INSTANCE.scannerService.unregister(this)
+        if (app.isScannerServiceInitialized) {
+            app.scannerService.unregister(this)
+        }
         super.onCleared()
     }
 
@@ -54,8 +63,7 @@ class MainConnectionViewModel : ViewModel(), UpdateNotifier {
     }
 
     override fun update(wiFiData: WiFiData) {
-        val mainContext = MainContext.INSTANCE
-        val settings = mainContext.settings
+        val settings = app.settings
         val connection = wiFiData.connection()
         val wiFiConnection = connection.wiFiAdditional.wiFiConnection
         val connectionViewType = settings.connectionViewType()
@@ -69,12 +77,12 @@ class MainConnectionViewModel : ViewModel(), UpdateNotifier {
         }
 
         val wifiSupportText =
-            if (wiFiBand.available()) null else mainContext.resources.getString(wiFiBand.textResource)
+            if (wiFiBand.available(app)) null else app.resources.getString(wiFiBand.textResource)
 
-        val isScannerRegistered = mainContext.mainActivity.currentNavigationMenu().registered()
-        val isScanThrottleEnabled = mainContext.wiFiManagerWrapper.isScanThrottleEnabled()
+        val isScannerRegistered = settings.selectedMenu().registered()
+        val isScanThrottleEnabled = app.wiFiManagerWrapper.isScanThrottleEnabled()
         val wiFiDetailsEmpty = wiFiData.wiFiDetails.isEmpty()
-        val isPermissionEnabled = mainContext.permissionService.enabled()
+        val isPermissionEnabled = permissionService.enabled()
 
         _state.value = MainConnectionState(
             isConnectionVisible = isConnectionVisible,

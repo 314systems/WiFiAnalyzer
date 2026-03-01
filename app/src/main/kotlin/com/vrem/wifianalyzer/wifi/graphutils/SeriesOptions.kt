@@ -55,7 +55,7 @@ private fun BaseSeries<GraphDataPoint>.drawBackground(drawBackground: Boolean) {
 }
 
 class SeriesOptions(
-    private val graphColors: GraphColors = GraphColors(),
+    private val graphColors: GraphColors,
 ) {
     fun highlightConnected(
         series: BaseSeries<GraphDataPoint>,

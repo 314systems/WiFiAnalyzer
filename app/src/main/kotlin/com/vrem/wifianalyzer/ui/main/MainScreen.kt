@@ -18,6 +18,7 @@
 
 package com.vrem.wifianalyzer.ui.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -29,9 +30,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.vrem.wifianalyzer.MainContext
+import com.vrem.wifianalyzer.WiFiAnalyzerApplication
 import com.vrem.wifianalyzer.about.AboutScreen
 import com.vrem.wifianalyzer.about.AboutViewModel
 import com.vrem.wifianalyzer.navigation.NavigationMenu
@@ -59,9 +61,18 @@ fun MainScreen(
     onToggleScanner: () -> Unit,
     onFilterClick: () -> Unit,
     onWiFiBandClick: (WiFiBand) -> Unit,
+    onBackPressed: () -> Unit,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    BackHandler(enabled = true) {
+        if (drawerState.isOpen) {
+            scope.launch { drawerState.close() }
+        } else {
+            onBackPressed()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -91,7 +102,7 @@ fun MainScreen(
                 )
             },
             bottomBar = {
-                if (currentMenu.idBottom != -1) {
+                if (currentMenu.showBottomBar) {
                     MainBottomNavigation(
                         selectedMenu = currentMenu,
                         onMenuSelected = onMenuSelected
@@ -125,6 +136,9 @@ fun MainScreen(
 
 @Composable
 private fun MainContentArea(currentMenu: NavigationMenu) {
+    val context = LocalContext.current
+    val app = context.applicationContext as WiFiAnalyzerApplication
+
     when (currentMenu) {
         NavigationMenu.ACCESS_POINTS -> AccessPointsContent()
         NavigationMenu.CHANNEL_GRAPH -> ChannelGraphContent()
@@ -136,7 +150,7 @@ private fun MainContentArea(currentMenu: NavigationMenu) {
             ChannelAvailableContent(state = uiState)
         }
 
-        NavigationMenu.VENDORS -> VendorView(vendorService = MainContext.INSTANCE.vendorService)
+        NavigationMenu.VENDORS -> VendorView(vendorService = app.vendorService)
         NavigationMenu.SETTINGS -> SettingsScreen(viewModel = viewModel<SettingsViewModel>())
         NavigationMenu.ABOUT -> {
             val aboutViewModel = viewModel<AboutViewModel>()
