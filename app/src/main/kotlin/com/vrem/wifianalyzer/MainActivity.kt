@@ -17,31 +17,28 @@
  */
 package com.vrem.wifianalyzer
 
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.vrem.util.createContext
-import com.vrem.util.defaultLanguageTag
-import com.vrem.util.findByLanguageTag
 import com.vrem.wifianalyzer.export.Export
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.permission.PermissionHandler
-import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.main.MainScreen
@@ -49,15 +46,8 @@ import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import android.provider.Settings as AndroidSettings
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
-
-    override fun attachBaseContext(newBase: Context) {
-        val repository = Repository(newBase)
-        val languageTag = repository.string(R.string.language_key, defaultLanguageTag())
-        val locale = findByLanguageTag(languageTag)
-        super.attachBaseContext(newBase.createContext(locale))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val app = application as WiFiAnalyzerApplication
@@ -97,8 +87,9 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(languageLocale) {
-                if (resources.configuration.locales[0].language != languageLocale.language) {
-                    recreate()
+                val appLocales = LocaleListCompat.forLanguageTags(languageLocale.toLanguageTag())
+                if (AppCompatDelegate.getApplicationLocales() != appLocales) {
+                    AppCompatDelegate.setApplicationLocales(appLocales)
                 }
             }
 
