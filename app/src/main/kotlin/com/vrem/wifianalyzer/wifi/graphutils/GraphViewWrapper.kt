@@ -25,7 +25,7 @@ import com.jjoe64.graphview.series.Series
 import com.vrem.wifianalyzer.SIZE_MAX
 import com.vrem.wifianalyzer.SIZE_MIN
 import com.vrem.wifianalyzer.settings.ThemeStyle
-import com.vrem.wifianalyzer.wifi.accesspoint.AccessPointPopup
+import com.vrem.wifianalyzer.wifi.accesspoint.showAccessPointPopup
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import java.security.MessageDigest
 
@@ -160,7 +160,7 @@ class GraphViewWrapper(
     private fun popup(series: Series<DataPointInterface>) {
         seriesCache.find(series).let {
             runCatching {
-                AccessPointPopup().show(graphView, it)
+                showAccessPointPopup(graphView, it)
             }
         }
     }

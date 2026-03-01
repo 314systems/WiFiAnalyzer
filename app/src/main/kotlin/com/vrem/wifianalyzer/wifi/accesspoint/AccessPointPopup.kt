@@ -30,10 +30,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -44,27 +40,25 @@ import androidx.compose.ui.window.Dialog
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 
-class AccessPointPopup {
-    fun show(
-        view: View,
-        wiFiDetail: WiFiDetail = WiFiDetail.EMPTY,
-    ) {
-        val rootLayout = view.rootView as? ViewGroup ?: return
-        val composeView = ComposeView(view.context)
-        composeView.setContent {
-            var showDialog by remember { mutableStateOf(true) }
-            if (showDialog) {
-                AccessPointAlertDialog(
-                    wiFiDetail = wiFiDetail,
-                    onDismiss = {
-                        showDialog = false
-                        rootLayout.removeView(composeView)
-                    },
-                )
-            }
-        }
-        rootLayout.addView(composeView)
+/**
+ * Bridge function to show the Access Point dialog from traditional Android Views.
+ * If calling from Compose, use [AccessPointAlertDialog] directly with a state-controlled visibility.
+ */
+fun showAccessPointPopup(
+    view: View,
+    wiFiDetail: WiFiDetail = WiFiDetail.EMPTY,
+) {
+    val rootLayout = view.rootView as? ViewGroup ?: return
+    val composeView = ComposeView(view.context)
+    composeView.setContent {
+        AccessPointAlertDialog(
+            wiFiDetail = wiFiDetail,
+            onDismiss = {
+                rootLayout.removeView(composeView)
+            },
+        )
     }
+    rootLayout.addView(composeView)
 }
 
 @Composable

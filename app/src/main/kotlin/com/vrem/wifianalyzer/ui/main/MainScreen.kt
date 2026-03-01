@@ -48,6 +48,7 @@ import com.vrem.wifianalyzer.wifi.channelavailable.ChannelAvailableViewModel
 import com.vrem.wifianalyzer.wifi.channelgraph.ChannelGraphContent
 import com.vrem.wifianalyzer.wifi.channelrating.ChannelRatingScreen
 import com.vrem.wifianalyzer.wifi.channelrating.ChannelRatingViewModel
+import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import com.vrem.wifianalyzer.wifi.timegraph.TimeGraphContent
 import kotlinx.coroutines.launch
 
@@ -111,8 +112,8 @@ fun MainScreen(
             }
         ) { paddingValues ->
             Column(modifier = Modifier.padding(paddingValues)) {
+                val connectionViewModel: MainConnectionViewModel = viewModel()
                 if (currentMenu.registered()) {
-                    val connectionViewModel: MainConnectionViewModel = viewModel()
                     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
                     val selectedWiFiDetail by connectionViewModel.selectedWiFiDetail.collectAsStateWithLifecycle()
 
@@ -128,19 +129,25 @@ fun MainScreen(
                         )
                     }
                 }
-                MainContentArea(currentMenu = currentMenu)
+                MainContentArea(
+                    currentMenu = currentMenu,
+                    onShowPopup = { connectionViewModel.onSelectedWiFiDetail(it) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun MainContentArea(currentMenu: NavigationMenu) {
+private fun MainContentArea(
+    currentMenu: NavigationMenu,
+    onShowPopup: (WiFiDetail) -> Unit
+) {
     val context = LocalContext.current
     val app = context.applicationContext as WiFiAnalyzerApplication
 
     when (currentMenu) {
-        NavigationMenu.ACCESS_POINTS -> AccessPointsContent()
+        NavigationMenu.ACCESS_POINTS -> AccessPointsContent(onShowPopup = onShowPopup)
         NavigationMenu.CHANNEL_GRAPH -> ChannelGraphContent()
         NavigationMenu.TIME_GRAPH -> TimeGraphContent()
         NavigationMenu.CHANNEL_RATING -> ChannelRatingScreen(viewModel = viewModel<ChannelRatingViewModel>())
@@ -158,6 +165,6 @@ private fun MainContentArea(currentMenu: NavigationMenu) {
             AboutScreen(uiState = uiState, onWriteReviewClick = {})
         }
 
-        else -> AccessPointsContent()
+        else -> AccessPointsContent(onShowPopup = onShowPopup)
     }
 }
