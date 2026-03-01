@@ -22,14 +22,23 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.onStart
 
 class Repository(
     private val context: Context,
 ) {
-    fun initializeDefaultValues() {
-        // XML based default values are no longer used. 
-        // Default values should be handled by the Settings class or ViewModel.
-    }
+    fun preferenceChanges(): Flow<String?> = callbackFlow {
+        val listener = OnSharedPreferenceChangeListener { _, key ->
+            trySend(key)
+        }
+        registerOnSharedPreferenceChangeListener(listener)
+        awaitClose {
+            unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }.onStart { emit(null) }
 
     fun registerOnSharedPreferenceChangeListener(
         onSharedPreferenceChangeListener: OnSharedPreferenceChangeListener,
@@ -110,9 +119,13 @@ class Repository(
         return runCatching {
             sharedPreferences().getStringSet(keyValue, defaultValues)!!
         }.getOrElse {
-            sharedPreferences().edit { putStringSet(keyValue, defaultValues) }
+            sharedPreferences().edit { putSet(keyValue, defaultValues) }
             return defaultValues
         }
+    }
+
+    private fun SharedPreferences.Editor.putSet(key: String, values: Set<String>) {
+        putStringSet(key, values)
     }
 
     fun saveStringSet(

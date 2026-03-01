@@ -19,18 +19,22 @@ package com.vrem.wifianalyzer
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vrem.util.createContext
 import com.vrem.util.defaultLanguageTag
 import com.vrem.util.findByLanguageTag
@@ -38,15 +42,14 @@ import com.vrem.wifianalyzer.export.Export
 import com.vrem.wifianalyzer.navigation.NavigationMenu
 import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
+import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.ui.filter.FilterDialog
 import com.vrem.wifianalyzer.ui.main.MainScreen
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail
 import android.provider.Settings as AndroidSettings
 
-class MainActivity :
-    AppCompatActivity(),
-    OnSharedPreferenceChangeListener {
+class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
@@ -60,13 +63,45 @@ class MainActivity :
         val app = application as WiFiAnalyzerApplication
         app.initScannerService(this, largeScreen)
 
-        viewModel.themeStyle.setTheme(this)
-
-        super.onCreate(savedInstanceState)
         installSplashScreen()
 
+        super.onCreate(savedInstanceState)
+
         setContent {
-            val keepScreenOn = viewModel.keepScreenOn
+            val themeStyle by viewModel.themeStyle.collectAsStateWithLifecycle()
+            val languageLocale by viewModel.languageLocale.collectAsStateWithLifecycle()
+            val keepScreenOn by viewModel.keepScreenOn.collectAsStateWithLifecycle()
+            val currentMenu by viewModel.currentMenu.collectAsStateWithLifecycle()
+            val isScannerRunning by viewModel.isScannerRunning.collectAsStateWithLifecycle()
+            val isFilterActive by viewModel.isFilterActive.collectAsStateWithLifecycle()
+            val currentWiFiBand by viewModel.currentWiFiBand.collectAsStateWithLifecycle()
+
+            val isSystemInDark = isSystemInDarkTheme()
+            val darkTheme = when (themeStyle) {
+                ThemeStyle.DARK, ThemeStyle.BLACK -> true
+                ThemeStyle.LIGHT -> false
+                ThemeStyle.SYSTEM -> isSystemInDark
+            }
+
+            LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        android.graphics.Color.TRANSPARENT,
+                        android.graphics.Color.TRANSPARENT,
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        android.graphics.Color.TRANSPARENT,
+                        android.graphics.Color.TRANSPARENT,
+                    ) { darkTheme }
+                )
+            }
+
+            LaunchedEffect(languageLocale) {
+                if (resources.configuration.locales[0].language != languageLocale.language) {
+                    recreate()
+                }
+            }
+
             DisposableEffect(keepScreenOn) {
                 if (keepScreenOn) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -76,17 +111,17 @@ class MainActivity :
                 onDispose { }
             }
 
-            AppTheme {
+            AppTheme(darkTheme = darkTheme) {
                 PermissionHandler(
                     onPermissionGranted = { viewModel.update() },
                     onTerminateApp = { finish() }
                 )
 
                 MainScreen(
-                    currentMenu = viewModel.currentMenu,
-                    isScannerRunning = viewModel.isScannerRunning,
-                    isFilterActive = viewModel.isFilterActive,
-                    currentWiFiBand = viewModel.currentWiFiBand,
+                    currentMenu = currentMenu,
+                    isScannerRunning = isScannerRunning,
+                    isFilterActive = isFilterActive,
+                    currentWiFiBand = currentWiFiBand,
                     onMenuSelected = { menu ->
                         if (menu == NavigationMenu.EXPORT) {
                             export()
@@ -105,7 +140,7 @@ class MainActivity :
                 if (viewModel.showFilterDialog) {
                     FilterDialog(
                         filtersAdapter = app.filtersAdapter,
-                        isAccessPoints = viewModel.currentMenu == NavigationMenu.ACCESS_POINTS,
+                        isAccessPoints = currentMenu == NavigationMenu.ACCESS_POINTS,
                         onApply = { ssid, bands, strengths, securities ->
                             viewModel.applyFilters(ssid, bands, strengths, securities)
                         },
@@ -115,8 +150,6 @@ class MainActivity :
                 }
             }
         }
-
-        app.repository.registerOnSharedPreferenceChangeListener(this)
     }
 
     private fun export() {
@@ -156,19 +189,6 @@ class MainActivity :
             return screenLayoutSize == Configuration.SCREENLAYOUT_SIZE_LARGE ||
                 screenLayoutSize == Configuration.SCREENLAYOUT_SIZE_XLARGE
         }
-
-    override fun onSharedPreferenceChanged(
-        sharedPreferences: SharedPreferences,
-        key: String?,
-    ) {
-        if (viewModel.shouldReload()) {
-            val app = application as WiFiAnalyzerApplication
-            app.scannerService.stop()
-            recreate()
-        } else {
-            viewModel.update()
-        }
-    }
 
     public override fun onPause() {
         viewModel.pauseScanner()

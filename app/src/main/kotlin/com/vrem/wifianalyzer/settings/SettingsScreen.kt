@@ -190,7 +190,7 @@ fun SettingsContent(
                 SettingsItem(
                     title = R.string.scan_speed_title,
                     summary = scanSpeed.toString(),
-                    icon = R.drawable.ic_fast_forward,
+                    icon = R.drawable.fast_forward_24px,
                     onClick = { dialogToShow = DialogType.SCAN_SPEED }
                 )
             }
@@ -252,7 +252,7 @@ fun SettingsContent(
                 SettingsItem(
                     title = R.string.theme_title,
                     summary = stringArrayResource(R.array.theme_array)[themeStyle.ordinal],
-                    icon = R.drawable.ic_color_lens,
+                    icon = R.drawable.dark_mode_24px,
                     onClick = { dialogToShow = DialogType.THEME }
                 )
                 SwitchPreference(
@@ -301,7 +301,7 @@ fun SettingsContent(
             HorizontalDivider()
             ActionPreference(
                 title = stringResource(R.string.reset_title),
-                icon = painterResource(R.drawable.ic_reset),
+                icon = painterResource(R.drawable.restart_alt_24px),
                 onClick = actions.onReset
             )
         }

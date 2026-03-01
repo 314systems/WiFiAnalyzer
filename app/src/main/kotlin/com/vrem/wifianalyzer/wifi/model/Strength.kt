@@ -25,11 +25,11 @@ enum class Strength(
     @DrawableRes val imageResource: Int,
     @ColorRes val colorResource: Int,
 ) {
-    ZERO(R.drawable.ic_signal_wifi_0_bar, R.color.error),
-    ONE(R.drawable.ic_signal_wifi_1_bar, R.color.warning),
-    TWO(R.drawable.ic_signal_wifi_2_bar, R.color.warning),
-    THREE(R.drawable.ic_signal_wifi_3_bar, R.color.success),
-    FOUR(R.drawable.ic_signal_wifi_4_bar, R.color.success),
+    ZERO(R.drawable.signal_wifi_0_bar_24px, R.color.error),
+    ONE(R.drawable.network_wifi_1_bar_24px, R.color.warning),
+    TWO(R.drawable.network_wifi_2_bar_24px, R.color.warning),
+    THREE(R.drawable.network_wifi_3_bar_24px, R.color.success),
+    FOUR(R.drawable.signal_wifi_4_bar_24px, R.color.success),
     ;
 
     fun weak(): Boolean = ZERO == this

@@ -18,6 +18,7 @@
 
 package com.vrem.wifianalyzer.wifi.accesspoint
 
+import android.content.res.Configuration
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -54,15 +54,13 @@ class AccessPointPopup {
         composeView.setContent {
             var showDialog by remember { mutableStateOf(true) }
             if (showDialog) {
-                AppTheme {
-                    AccessPointAlertDialog(
-                        wiFiDetail = wiFiDetail,
-                        onDismiss = {
-                            showDialog = false
-                            rootLayout.removeView(composeView)
-                        },
-                    )
-                }
+                AccessPointAlertDialog(
+                    wiFiDetail = wiFiDetail,
+                    onDismiss = {
+                        showDialog = false
+                        rootLayout.removeView(composeView)
+                    },
+                )
             }
         }
         rootLayout.addView(composeView)
@@ -76,44 +74,49 @@ fun AccessPointAlertDialog(
     modifier: Modifier = Modifier,
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        AppTheme {
-            Surface(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                AccessPointViewPopup(
+                    wiFiDetail = wiFiDetail,
+                    onClick = null
+                )
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(top = 8.dp)
                 ) {
-                    AccessPointViewPopup(
-                        wiFiDetail = wiFiDetail,
-                        onClick = null
-                    )
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.align(Alignment.End).padding(top = 8.dp)
-                    ) {
-                        Text(text = stringResource(id = android.R.string.ok))
-                    }
+                    Text(text = stringResource(id = android.R.string.ok))
                 }
             }
         }
     }
 }
 
-@Preview(
-    showBackground = true,
-    widthDp = 320,
-    uiMode = UI_MODE_NIGHT_YES,
-    name = "AccessPointAlertDialogPreviewDark"
-)
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun AccessPointAlertDialogPreview() {
-    AppTheme {
+    AppTheme(darkTheme = false) {
+        AccessPointAlertDialog(
+            wiFiDetail = WiFiDetail.EMPTY,
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
+@Composable
+fun AccessPointAlertDialogDarkPreview() {
+    AppTheme(darkTheme = true) {
         AccessPointAlertDialog(
             wiFiDetail = WiFiDetail.EMPTY,
             onDismiss = {},

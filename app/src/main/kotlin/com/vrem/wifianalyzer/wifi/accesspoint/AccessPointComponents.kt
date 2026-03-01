@@ -96,7 +96,7 @@ fun SSIDHeader(
         isExpanded?.let {
             Icon(
                 painter = painterResource(
-                    id = if (it) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+                    id = if (it) R.drawable.keyboard_control_key_24px else R.drawable.keyboard_arrow_down_24px
                 ),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
@@ -107,7 +107,6 @@ fun SSIDHeader(
         Text(
             text = ssid,
             style = textStyle.copy(fontWeight = FontWeight.Bold),
-            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }

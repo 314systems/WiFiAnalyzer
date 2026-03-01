@@ -49,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import com.vrem.util.SPACE_SEPARATOR
 import com.vrem.util.specialTrim
 import com.vrem.wifianalyzer.R
+import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.filter.adapter.FiltersAdapter
@@ -82,9 +84,6 @@ fun FilterDialog(
     }
 }
 
-/**
- * Main Composable for the Filter Popup, migrating from filter_popup.xml.
- */
 @Composable
 fun FilterPopupContent(
     filtersAdapter: FiltersAdapter,
@@ -330,16 +329,18 @@ private fun SecurityFilterSection(
     }
 }
 
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true)
 @Composable
 fun FilterPopupContentPreview() {
+    val context = LocalContext.current
     AppTheme {
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun FilterPopupContentDarkPreview() {
-    AppTheme {
+        FilterPopupContent(
+            filtersAdapter = FiltersAdapter(Repository(context)),
+            isAccessPoints = true,
+            onApply = { _, _, _, _ -> },
+            onReset = {},
+            onClose = {}
+        )
     }
 }

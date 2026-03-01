@@ -164,7 +164,7 @@ private fun NoLocationSection(
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_location_on),
+                painter = painterResource(id = R.drawable.location_on_24px),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(16.dp)

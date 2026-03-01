@@ -18,11 +18,11 @@
 package com.vrem.wifianalyzer
 
 import android.app.Application
-import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.vrem.util.SPACE_SEPARATOR
 import com.vrem.util.defaultLanguageTag
 import com.vrem.util.findByLanguageTag
@@ -35,74 +35,82 @@ import com.vrem.wifianalyzer.settings.ThemeStyle
 import com.vrem.wifianalyzer.wifi.band.WiFiBand
 import com.vrem.wifianalyzer.wifi.model.Security
 import com.vrem.wifianalyzer.wifi.model.Strength
+import com.vrem.wifianalyzer.wifi.model.WiFiDetail
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.util.Locale
 import kotlin.enums.EnumEntries
 
-class MainViewModel(application: Application) :
-    AndroidViewModel(application),
-    SharedPreferences.OnSharedPreferenceChangeListener {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as WiFiAnalyzerApplication
     private val repository = app.repository
     private val filtersAdapter = app.filtersAdapter
     private val permissionService = PermissionService(application)
 
-    var currentMenu by mutableStateOf(readSelectedMenu())
-        private set
-    var isScannerRunning by mutableStateOf(false)
-        private set
-    var isFilterActive by mutableStateOf(false)
-        private set
-    var currentWiFiBand by mutableStateOf(readWiFiBand())
-        private set
+    private val _currentMenu = MutableStateFlow(readSelectedMenu())
+    val currentMenu: StateFlow<NavigationMenu> = _currentMenu.asStateFlow()
+
+    private val _isScannerRunning = MutableStateFlow(false)
+    val isScannerRunning: StateFlow<Boolean> = _isScannerRunning.asStateFlow()
+
+    private val _isFilterActive = MutableStateFlow(false)
+    val isFilterActive: StateFlow<Boolean> = _isFilterActive.asStateFlow()
+
+    val currentWiFiBand: StateFlow<WiFiBand> = repository.preferenceChanges()
+        .map { readWiFiBand() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), readWiFiBand())
+
     var showFilterDialog by mutableStateOf(false)
-        set
-    var themeStyle by mutableStateOf(readThemeStyle())
-        private set
-    var languageLocale by mutableStateOf(readLanguageLocale())
-        private set
-    var keepScreenOn by mutableStateOf(readKeepScreenOn())
-        private set
 
-    init {
-        repository.registerOnSharedPreferenceChangeListener(this)
-    }
+    private val _selectedWiFiDetail = MutableStateFlow<WiFiDetail?>(null)
+    val selectedWiFiDetail: StateFlow<WiFiDetail?> = _selectedWiFiDetail.asStateFlow()
 
-    override fun onCleared() {
-        repository.unregisterOnSharedPreferenceChangeListener(this)
-        super.onCleared()
-    }
+    val themeStyle: StateFlow<ThemeStyle> = repository.preferenceChanges()
+        .map { readThemeStyle() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), readThemeStyle())
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        update()
-    }
+    val languageLocale: StateFlow<Locale> = repository.preferenceChanges()
+        .map { readLanguageLocale() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), readLanguageLocale())
+
+    val keepScreenOn: StateFlow<Boolean> = repository.preferenceChanges()
+        .map { readKeepScreenOn() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), readKeepScreenOn())
 
     fun update() {
         if (app.isScannerServiceInitialized) {
             app.scannerService.update()
-            isScannerRunning = app.scannerService.running()
+            _isScannerRunning.value = app.scannerService.running()
         }
-        isFilterActive = filtersAdapter.isActive(currentMenu == NavigationMenu.ACCESS_POINTS)
-        currentWiFiBand = readWiFiBand()
-        themeStyle = readThemeStyle()
-        languageLocale = readLanguageLocale()
-        keepScreenOn = readKeepScreenOn()
-    }
-
-    fun shouldReload(): Boolean {
-        val newTheme = readThemeStyle()
-        val newLocale = readLanguageLocale()
-        return themeStyle != newTheme || languageLocale != newLocale
+        _isFilterActive.value =
+            filtersAdapter.isActive(currentMenu.value == NavigationMenu.ACCESS_POINTS)
     }
 
     fun selectMenu(menu: NavigationMenu) {
-        currentMenu = menu
+        _currentMenu.value = menu
         saveSelectedMenu(menu)
         update()
     }
 
+    fun showWiFiDetail(wiFiDetail: WiFiDetail) {
+        _selectedWiFiDetail.value = wiFiDetail
+    }
+
+    fun closeWiFiDetail() {
+        _selectedWiFiDetail.value = null
+    }
+
     fun handleBack(onFinish: () -> Unit) {
+        if (_selectedWiFiDetail.value != null) {
+            closeWiFiDetail()
+            return
+        }
         val selectedMenu = readSelectedMenu()
-        if (currentMenu == selectedMenu) {
+        if (currentMenu.value == selectedMenu) {
             onFinish()
         } else {
             selectMenu(selectedMenu)
@@ -118,7 +126,6 @@ class MainViewModel(application: Application) :
 
     fun updateWiFiBand(band: WiFiBand) {
         repository.save(R.string.wifi_band_key, band.ordinal)
-        update()
     }
 
     fun applyFilters(
@@ -127,7 +134,7 @@ class MainViewModel(application: Application) :
         strengths: Set<Strength>,
         securities: Set<Security>,
     ) {
-        val isAccessPoints = currentMenu == NavigationMenu.ACCESS_POINTS
+        val isAccessPoints = currentMenu.value == NavigationMenu.ACCESS_POINTS
         with(filtersAdapter) {
             ssidAdapter().selections = ssid.specialTrim().split(String.SPACE_SEPARATOR).toSet()
             wiFiBandAdapter().selections = bands
@@ -140,7 +147,7 @@ class MainViewModel(application: Application) :
     }
 
     fun resetFilters() {
-        filtersAdapter.reset(currentMenu == NavigationMenu.ACCESS_POINTS)
+        filtersAdapter.reset(currentMenu.value == NavigationMenu.ACCESS_POINTS)
         update()
         showFilterDialog = false
     }

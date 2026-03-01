@@ -25,9 +25,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,22 +36,14 @@ import com.vrem.wifianalyzer.wifi.model.WiFiSignal
 
 @Composable
 fun AccessPointsContent(
-    viewModel: AccessPointsViewModel = viewModel()
+    viewModel: AccessPointsViewModel = viewModel(),
+    onShowPopup: (WiFiDetail) -> Unit = {}
 ) {
     val wiFiDetails by viewModel.wiFiDetails.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val expandedGroups by viewModel.expandedGroups.collectAsStateWithLifecycle()
     val viewType by viewModel.accessPointView.collectAsStateWithLifecycle()
     val groupBy by viewModel.groupByState.collectAsStateWithLifecycle()
-
-    var selectedWiFiDetail by remember { mutableStateOf<WiFiDetail?>(null) }
-
-    if (selectedWiFiDetail != null) {
-        AccessPointAlertDialog(
-            wiFiDetail = selectedWiFiDetail!!,
-            onDismiss = { selectedWiFiDetail = null }
-        )
-    }
 
     AccessPointsContent(
         wiFiDetails = wiFiDetails,
@@ -64,7 +53,7 @@ fun AccessPointsContent(
         groupNameProvider = { groupBy.group(it) },
         onRefresh = { viewModel.refresh() },
         onToggleGroup = { viewModel.toggleGroup(it) },
-        onShowPopup = { selectedWiFiDetail = it }
+        onShowPopup = onShowPopup
     )
 }
 
