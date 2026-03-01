@@ -32,7 +32,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.vrem.util.createContext
 import com.vrem.wifianalyzer.export.Export
 import com.vrem.wifianalyzer.navigation.NavigationMenu
-import com.vrem.wifianalyzer.navigation.NavigationMenuControl
 import com.vrem.wifianalyzer.permission.PermissionHandler
 import com.vrem.wifianalyzer.settings.Repository
 import com.vrem.wifianalyzer.settings.Settings
@@ -44,7 +43,6 @@ import android.provider.Settings as AndroidSettings
 
 class MainActivity :
     AppCompatActivity(),
-    NavigationMenuControl,
     OnSharedPreferenceChangeListener {
     private lateinit var settings: Settings
     private val viewModel: MainViewModel by viewModels()
@@ -166,20 +164,6 @@ class MainActivity :
         } else {
             window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
-    }
-
-    override fun updateActionBar() {
-        // No longer needed with Compose TopAppBar
-    }
-
-    override fun mainConnectionVisibility(visibility: Int) {
-        // Compose 側の表示制御が必要な場合にここでステートを更新する
-    }
-
-    override fun currentNavigationMenu(): NavigationMenu = viewModel.currentMenu
-
-    override fun currentNavigationMenu(navigationMenu: NavigationMenu) {
-        viewModel.selectMenu(navigationMenu)
     }
 
     public override fun onPause() {
