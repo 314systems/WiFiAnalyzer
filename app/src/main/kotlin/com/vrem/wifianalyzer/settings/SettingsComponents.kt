@@ -30,7 +30,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PreferenceCategory(title: String, modifier: Modifier = Modifier) {
+fun PreferenceCategory(
+    title: String,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,

@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vrem.util.supportedLanguages
@@ -62,7 +63,10 @@ private enum class DialogType {
 }
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
     val scanSpeed by viewModel.scanSpeed.collectAsStateWithLifecycle()
     val sortBy by viewModel.sortBy.collectAsStateWithLifecycle()
     val groupBy by viewModel.groupBy.collectAsStateWithLifecycle()
@@ -110,7 +114,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             onSetLanguage = viewModel::setLanguage,
             onSetCacheOff = viewModel::setCacheOff,
             onReset = viewModel::reset
-        )
+        ),
+        modifier = modifier
     )
 }
 
@@ -150,7 +155,8 @@ fun SettingsContent(
     languageLocale: String,
     cacheOff: Boolean,
     showWiFiOffOnExit: Boolean,
-    actions: SettingsActions
+    actions: SettingsActions,
+    modifier: Modifier = Modifier
 ) {
     var dialogToShow by remember { mutableStateOf(DialogType.NONE) }
     val currentLocale = remember(languageLocale) { Locale.forLanguageTag(languageLocale) }
@@ -170,17 +176,17 @@ fun SettingsContent(
         languageLocale = languageLocale,
         currentLocale = currentLocale,
         onDismiss = { dialogToShow = DialogType.NONE },
-        actions = actions
+        actions = actions,
     )
 
-    Scaffold { padding ->
+    Scaffold(modifier = modifier) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            SettingsSection(stringResource(R.string.scan_speed_title)) {
+            SettingsSection(title = stringResource(R.string.scan_speed_title)) {
                 SettingsItem(
                     title = R.string.scan_speed_title,
                     summary = scanSpeed.toString(),
@@ -189,7 +195,7 @@ fun SettingsContent(
                 )
             }
 
-            SettingsSection(stringResource(R.string.sort_by_title)) {
+            SettingsSection(title = stringResource(R.string.sort_by_title)) {
                 SettingsItem(
                     title = R.string.sort_by_title,
                     summary = stringArrayResource(R.array.sort_by_array)[sortBy.ordinal],
@@ -204,7 +210,7 @@ fun SettingsContent(
                 )
             }
 
-            SettingsSection(stringResource(R.string.connection_view_title)) {
+            SettingsSection(title = stringResource(R.string.connection_view_title)) {
                 SettingsItem(
                     title = R.string.connection_view_title,
                     summary = stringArrayResource(R.array.connection_view_array)[connectionViewType.ordinal],
@@ -219,7 +225,7 @@ fun SettingsContent(
                 )
             }
 
-            SettingsSection(stringResource(R.string.graph_maximum_y_title)) {
+            SettingsSection(title = stringResource(R.string.graph_maximum_y_title)) {
                 val graphYEntries = stringArrayResource(R.array.graph_maximum_y_array)
                 val graphYIndex = stringArrayResource(R.array.graph_maximum_y_index_array)
                     .indexOf((graphMaximumY / -10).toString()).coerceAtLeast(0)
@@ -242,7 +248,7 @@ fun SettingsContent(
                 )
             }
 
-            SettingsSection(stringResource(R.string.theme_title)) {
+            SettingsSection(title = stringResource(R.string.theme_title)) {
                 SettingsItem(
                     title = R.string.theme_title,
                     summary = stringArrayResource(R.array.theme_array)[themeStyle.ordinal],
@@ -265,7 +271,7 @@ fun SettingsContent(
                 }
             }
 
-            SettingsSection(stringResource(R.string.country_code_title)) {
+            SettingsSection(title = stringResource(R.string.country_code_title)) {
                 val countryName = WiFiChannelCountry.find(countryCode).countryName(currentLocale)
                 SettingsItem(
                     title = R.string.country_code_title,
@@ -284,7 +290,7 @@ fun SettingsContent(
                 )
             }
 
-            SettingsSection(stringResource(R.string.experimental_title)) {
+            SettingsSection(title = stringResource(R.string.experimental_title)) {
                 SwitchPreference(
                     title = stringResource(R.string.cache_off_title),
                     checked = cacheOff,
@@ -303,18 +309,29 @@ fun SettingsContent(
 }
 
 @Composable
-private fun SettingsSection(title: String, content: @Composable () -> Unit) {
-    PreferenceCategory(title = title)
+private fun SettingsSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    PreferenceCategory(title = title, modifier = modifier)
     content()
     HorizontalDivider()
 }
 
 @Composable
-private fun SettingsItem(title: Int, summary: String, icon: Int? = null, onClick: () -> Unit) {
+private fun SettingsItem(
+    title: Int,
+    summary: String,
+    modifier: Modifier = Modifier,
+    icon: Int? = null,
+    onClick: () -> Unit
+) {
     ListPreference(
         title = stringResource(title),
         summary = summary,
         icon = icon?.let { painterResource(it) },
+        modifier = modifier,
         onClick = onClick
     )
 }
@@ -458,7 +475,8 @@ fun ListPreferenceDialog(
     entryValues: List<String>,
     selectedValue: String,
     onValueSelected: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -484,7 +502,8 @@ fun ListPreferenceDialog(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(android.R.string.cancel))
             }
-        }
+        },
+        modifier = modifier
     )
 }
 
@@ -495,7 +514,8 @@ fun <T : Enum<T>> EnumPreferenceDialog(
     values: List<T>,
     selectedValue: T,
     onValueSelected: (T) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -521,13 +541,15 @@ fun <T : Enum<T>> EnumPreferenceDialog(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(android.R.string.cancel))
             }
-        }
+        },
+        modifier = modifier
     )
 }
 
-@Preview(showBackground = true, name = "Light Mode")
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Preview(showBackground = true)
 @Composable
-fun SettingsScreenLightPreview() {
+fun SettingsScreenPreview() {
     AppTheme {
         Surface {
             SettingsContent(

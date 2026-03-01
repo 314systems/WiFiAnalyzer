@@ -23,7 +23,6 @@ import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.vrem.util.buildMinVersionR
 
 class WiFiManagerWrapper(
     private val wifiManager: WifiManager,
@@ -47,14 +46,14 @@ class WiFiManagerWrapper(
     fun is5GHzBandSupported(): Boolean = wifiManager.is5GHzBandSupported
 
     fun is6GHzBandSupported(): Boolean =
-        if (minVersionR()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             wifiManager.is6GHzBandSupported
         } else {
             false
         }
 
     fun isScanThrottleEnabled(): Boolean =
-        if (minVersionR()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             isScanThrottleEnabledR()
         } else {
             false
@@ -62,6 +61,4 @@ class WiFiManagerWrapper(
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun isScanThrottleEnabledR(): Boolean = wifiManager.isScanThrottleEnabled
-
-    fun minVersionR(): Boolean = buildMinVersionR()
 }

@@ -18,7 +18,6 @@
 package com.vrem.wifianalyzer.permission
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -49,6 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -59,6 +59,7 @@ import com.vrem.wifianalyzer.ui.theme.AppTheme
 
 @Composable
 fun PermissionHandler(
+    modifier: Modifier = Modifier,
     onPermissionGranted: () -> Unit,
     onTerminateApp: () -> Unit
 ) {
@@ -108,7 +109,8 @@ fun PermissionHandler(
                 showDialog = false
                 launcher.launch(PermissionService.PERMISSION)
             },
-            onTerminateApp = onTerminateApp
+            onTerminateApp = onTerminateApp,
+            modifier = modifier
         )
     }
 }
@@ -152,7 +154,9 @@ private fun PermissionDialog(
 }
 
 @Composable
-private fun ThrottlingInfo(modifier: Modifier = Modifier) {
+private fun ThrottlingInfo(
+    modifier: Modifier = Modifier
+) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         Text(
             text = stringResource(id = R.string.throttling_msg),
@@ -163,7 +167,9 @@ private fun ThrottlingInfo(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LocationInfo(modifier: Modifier = Modifier) {
+private fun LocationInfo(
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -176,7 +182,7 @@ private fun LocationInfo(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_location_on),
+                painter = painterResource(id = R.drawable.location_on_24px),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
@@ -210,35 +216,14 @@ private fun FaqInfo(
     }
 }
 
+@Preview(
+    showBackground = true,
+    uiMode = UI_MODE_NIGHT_YES
+)
 @Preview(showBackground = true)
 @Composable
 private fun PermissionDialogPreview() {
     AppTheme {
-        PermissionDialog(
-            onConfirm = {},
-            onTerminateApp = {}
-        )
-    }
-}
-
-@Preview(
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-private fun DarkPermissionDialogPreview() {
-    AppTheme {
-        PermissionDialog(
-            onConfirm = {},
-            onTerminateApp = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun MaterialPermissionDialogPreview() {
-    MaterialTheme {
         PermissionDialog(
             onConfirm = {},
             onTerminateApp = {}

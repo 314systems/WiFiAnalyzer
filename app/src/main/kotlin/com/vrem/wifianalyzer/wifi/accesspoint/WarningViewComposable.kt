@@ -18,6 +18,7 @@
 
 package com.vrem.wifianalyzer.wifi.accesspoint
 
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,7 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.vrem.util.buildMinVersionP
 import com.vrem.wifianalyzer.R
 import com.vrem.wifianalyzer.ui.theme.AppTheme
 
@@ -94,7 +94,7 @@ fun WarningView(
                     }
 
                     if (noLocation) {
-                        NoLocationSection(isThrottlingMsgVisible = buildMinVersionP())
+                        NoLocationSection(isThrottlingMsgVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
                     }
 
                     FaqSection()
